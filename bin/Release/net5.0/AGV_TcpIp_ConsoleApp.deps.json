@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v5.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v5.0": {
+      "AGV_TcpIp_ConsoleApp/1.0.0": {
+        "runtime": {
+          "AGV_TcpIp_ConsoleApp.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "AGV_TcpIp_ConsoleApp/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

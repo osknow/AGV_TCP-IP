@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "pvAQcDaUE1UTcm4TQmdMqQvwb8eLJs1uBiTRB2uqQHvXiQMXu1OrXaFBf3YL6CGy6JfVS+xzK3Z7E53yU84Vxg==",
+  "dgSpecHash": "KGY+f6DVt1QONOEt92W/8YOH8WY7SK0JCz2xZDoogyYNZywns6AKeRqtOWElR6zNFwFnFu3Y4Zw3ldQ9IpLrPw==",
   "success": true,
-  "projectFilePath": "\\\\pozfiler01\\users$\\osknow\\Desktop\\OSKNOW\\Projekty\\MVC_ASP_NET_C#\\pozmda02\\AGV_TcpIp_ConsoleApp\\AGV_TcpIp_ConsoleApp.csproj",
+  "projectFilePath": "C:\\Users\\osknowpa\\AGV_TCP-IP\\AGV_TcpIp_ConsoleApp.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

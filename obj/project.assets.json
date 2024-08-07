@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "\\\\pozfiler01\\users$\\osknow\\Desktop\\OSKNOW\\Projekty\\MVC_ASP_NET_C#\\pozmda02\\AGV_TcpIp_ConsoleApp\\AGV_TcpIp_ConsoleApp.csproj",
+      "projectUniqueName": "C:\\Users\\osknowpa\\AGV_TCP-IP\\AGV_TcpIp_ConsoleApp.csproj",
       "projectName": "AGV_TcpIp_ConsoleApp",
-      "projectPath": "\\\\pozfiler01\\users$\\osknow\\Desktop\\OSKNOW\\Projekty\\MVC_ASP_NET_C#\\pozmda02\\AGV_TcpIp_ConsoleApp\\AGV_TcpIp_ConsoleApp.csproj",
+      "projectPath": "C:\\Users\\osknowpa\\AGV_TCP-IP\\AGV_TcpIp_ConsoleApp.csproj",
       "packagesPath": "C:\\Users\\osknow\\.nuget\\packages\\",
-      "outputPath": "\\\\pozfiler01\\users$\\osknow\\Desktop\\OSKNOW\\Projekty\\MVC_ASP_NET_C#\\pozmda02\\AGV_TcpIp_ConsoleApp\\obj\\",
+      "outputPath": "C:\\Users\\osknowpa\\AGV_TCP-IP\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\osknow\\AppData\\Roaming\\NuGet\\NuGet.Config",

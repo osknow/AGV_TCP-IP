@@ -72,7 +72,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                 }
 
                             }
-                            //Kasowanie zadania które zostyało stworzone  arobot przestał zgłaszać błąd.
+                            //Kasowanie zadania które zostało stworzone  a robot przestał zgłaszać błąd.
                             else
                             {
                                 int idToDelete = 0;

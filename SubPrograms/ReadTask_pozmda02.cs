@@ -24,7 +24,7 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
                     }
                     catch (HttpRequestException e)
                     {
-                        throw;
+                        throw e;
                     }
                 }
             }

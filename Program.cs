@@ -26,7 +26,7 @@ namespace AGV_TcpIp_ConsoleApp
         static   async Task Main()
         {
 #if !DEBUG
-            Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP\\logs"));
+            //Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP\\logs"));
 #endif
             try
             {

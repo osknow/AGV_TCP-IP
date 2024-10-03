@@ -63,7 +63,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                     SendTask_pozmda02_body body = new SendTask_pozmda02_body()
                                     {
                                         Name = machine.MachineName,
-                                        Details = "TESTY Awaria wózka",
+                                        Details = "Awaria wózka",
                                         MachineNumber = "AGV"
                                     };
                                     SendTask_pozmda02.POST(body);

@@ -20,6 +20,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                 bool stateReset = false;
                 using (HttpClient client = new HttpClient())
                 {
+                    List<AGV_Machine> listMachineAGV = await GetMachinesAGV_pozmda02.Get();
                     //
                     List<ReadTask_pozmda02_body> tasksPozmda02 = await ReadTask_pozmda02.Get();
                     //
@@ -29,7 +30,12 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                     {
                         foreach (var machine in agvMachineStatus)
                         {
-                            if (machine.State == 9)
+                            //znalezienie maszyny 
+                            AGV_Machine machineAGV = listMachineAGV.Find(x => x.MachineName == machine.MachineName);
+                            //
+                            //Sprawdzenie czy maszyna nie ma serwisowego przełącznika aktywnego.
+                            //
+                            if (machine.State == 9 && (! machineAGV.AGV_SerwviceWork))
                             {
 
                                 //Przejrzenie zadań na liście 

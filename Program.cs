@@ -6,7 +6,9 @@ using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using AGV_TcpIp_ConsoleApp.Model;
 using AGV_TcpIp_ConsoleApp.SubProgramLogic;
+using AGV_TcpIp_ConsoleApp.SubPrograms;
 
 namespace AGV_TcpIp_ConsoleApp
 {
@@ -200,6 +202,7 @@ namespace AGV_TcpIp_ConsoleApp
                         t.IsBackground = true;
                         t.Start();
                     }
+
                     await SendTask_Logic.UpdateTasks_ForElectricals(ListobjId310public);
                 }
                 if (client.Connected == false)

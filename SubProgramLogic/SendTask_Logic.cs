@@ -18,6 +18,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
             {
                 bool state = false;
                 bool stateReset = false;
+                DateTime nowtime = DateTime.Now;
                 using (HttpClient client = new HttpClient())
                 {
                     List<AGV_Machine> listMachineAGV = await GetMachinesAGV_pozmda02.Get();
@@ -34,7 +35,6 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             AGV_Machine machineAGV = listMachineAGV.Find(x => x.MachineName == machine.MachineName);
                             //
                             //Sprawdzenie czy maszyna nie ma serwisowego przełącznika aktywnego.
-                            //
                             if (machine.State == 9 && (! machineAGV.AGV_SerwviceWork))
                             {
 
@@ -59,7 +59,19 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                                 Details = "Awaria wózka",
                                                 MachineNumber = "AGV"
                                             };
-                                            SendTask_pozmda02.POST(body);
+                                            // Aktualizacja czasu wystąpienia awari AGV.
+                                            //
+                                            if (machineAGV.AlarmOccuredTime.Year == 1)
+                                            {
+                                                AGV_UpdateAlarm.Get(machineAGV.MachineID, true);
+                                            }
+                                            else if (nowtime.AddMinutes( - 2) >= machineAGV.AlarmOccuredTime)
+                                            {
+                                                //Tymczsowo zabolkowane wysyłanie zadań do elektryków - TESTY - 05_11_2024
+                                                //
+                                                SendTask_pozmda02.POST(body);
+                                                //
+                                            }
                                             state = false;
                                         }
                                     }
@@ -72,7 +84,19 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                         Details = "Awaria wózka",
                                         MachineNumber = "AGV"
                                     };
-                                    SendTask_pozmda02.POST(body);
+                                    // Aktualizacja czasu wystąpienia awari AGV.
+                                    //
+                                    if (machineAGV.AlarmOccuredTime.Year == 1)
+                                    {
+                                        AGV_UpdateAlarm.Get(machineAGV.MachineID, true);
+                                    }
+                                    else if (nowtime.AddMinutes(-2) >= machineAGV.AlarmOccuredTime)
+                                    {
+                                        //Tymczsowo zabolkowane wysyłanie zadań do elektryków - TESTY - 05_11_2024
+                                        //
+                                        SendTask_pozmda02.POST(body);
+                                        //
+                                    }
                                     state = false;
 
                                 }
@@ -82,6 +106,12 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             else
                             {
                                 int idToDelete = 0;
+                                //
+                                if (! (machineAGV.AlarmOccuredTime.Year == 1))
+                                {
+                                    AGV_UpdateAlarm.Get(machineAGV.MachineID, false);
+                                }
+                                //
                                 foreach (var task in tasksPozmda02)
                                 {
                                     if (task.name == machine.MachineName && task.status == 0)

@@ -11,6 +11,17 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
 {
     public  class SendTask_Logic
     {
+        // Zmienne wykrycia przeszkód na trasie AGV
+        static bool agv_1_ObstacleDetected = false;
+        static bool agv_2_ObstacleDetected = false;
+        static bool agv_3_ObstacleDetected = false;
+        //
+        static bool agv_1_loadSensorError = false;
+        static bool agv_2_loadSensorError = false;
+        static bool agv_3_loadSensorError = false;
+        //
+        static bool taskObstacleDetectionSended = false;
+        //
         public static async Task UpdateTasks_ForElectricals(List<ID_310> agvMachineStatus)
         {
 
@@ -107,14 +118,14 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             {
                                 int idToDelete = 0;
                                 //
-                                if (! (machineAGV.AlarmOccuredTime.Year == 1))
+                                if ((! (machineAGV.AlarmOccuredTime.Year == 1)) &&  agv_1_ObstacleDetected == false && agv_2_ObstacleDetected == false && agv_3_ObstacleDetected == false)
                                 {
                                     AGV_UpdateAlarm.Get(machineAGV.MachineID, false);
                                 }
                                 //
                                 foreach (var task in tasksPozmda02)
                                 {
-                                    if (task.name == machine.MachineName && task.status == 0)
+                                    if (task.name == machine.MachineName && task.status == 0 && task.details.Contains("Awaria"))
                                     {
                                         stateReset = true;
                                         idToDelete = task.id;
@@ -138,6 +149,274 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
             }
 
                 }
+        public static async Task RecognizeAlarm_Warning(List<ID_309> agvMachineAlarmsList)
+        {
+            // Sprawdzenie listy czy nie jest pusta
+            //
+            if (agvMachineAlarmsList.Count > 0)
+            {
+                //
+                List<AGV_Machine> listMachineAGV = await GetMachinesAGV_pozmda02.Get();
+                //
+                List<ReadTask_pozmda02_body> tasksPozmda02 = await ReadTask_pozmda02.Get();
+                //
+                bool agv_1_obstacleActive = false;
+                bool agv_2_obstacleActive = false;
+                bool agv_3_obstacleActive = false;
+                //
+                bool state = false;
+                bool stateLoadSensor = false;
+
+                int machineID = 0;
+                foreach (var item in agvMachineAlarmsList) {
+                    //
+                    #region AGV_Ids
+                    switch (item.Machine)
+                    {
+                        case "AGV 1":
+                            machineID = 1;
+                            break;
+                        case "AGV 2":
+                            machineID = 2;
+                            break;
+                        case "AGV 3":
+                            machineID = 3;
+                            break;
+                        case "AGV1":
+                            machineID = 1;
+                            break;
+                        case "AGV2":
+                            machineID = 2;
+                            break;
+                        case "AGV3":
+                            machineID = 3;
+                            break;
+                    }
+                    #endregion
+                    switch (item.NumberId) { 
+                    //
+                    case 622:
+                            //_______________________________________________________
+                            // 
+                            // Detected an obstacle
+                            // Stała przeszkoda na drodze
+                            // ______________________________________________________
+                            // Nadanie Id dla maszyn AGV niezbędne do wysałania requestu o zadaniu. 
+                            switch (machineID)
+                            {
+                                case 1:
+
+                                    agv_1_obstacleActive = true;
+                                    break;
+                                case 2:
+
+                                    agv_2_obstacleActive = true;
+                                    break;
+                                case 3:
+
+                                    agv_3_obstacleActive = true;
+                                    break;
+                                default:
+                                    agv_1_obstacleActive = true;
+                                    agv_2_obstacleActive = true;
+                                    agv_3_obstacleActive = true;
+                                    break;
+                            }
+                            //
+                            DateTime timeNow = DateTime.Now; 
+                            //
+                            foreach(var agv in listMachineAGV)
+                            {
+                                if(!(agv.AlarmOccuredTime.Year == 1))
+                                {
+                                    // Sprawdenie czy na liście zadań nie istnieje już jakiś alarm dla maszyny AGV jeśli istnieje alarm to nie wysyłamy komunikatu o przeszkodzie
+                                    // Odwrotnie tak samo -ZASADA że tylko jedno zadanie z AGV na liście u elektryków.
+                                    foreach (var task in tasksPozmda02)
+                                    {
+                                        if (task.name == agv.MachineName)
+                                        {
+                                            state = true;
+                                        }
+                                    }
+                                    // Tworzenie zadania
+                                    //if ((((!(agv.State == 9)) && (timeNow.AddSeconds(-1) >= agv.AlarmOccuredTime)) && (state == false))&& taskObstacleDetectionSended == false)
+                                    if (((!(agv.State == 9)) && (timeNow.AddMinutes(-1) >= agv.AlarmOccuredTime)) && (state == false))
+                                    {
+                                        SendTask_pozmda02_body body = new SendTask_pozmda02_body()
+                                        {
+                                            Name = agv.MachineName,
+                                            Details = "Przeszkoda na drodze",
+                                            MachineNumber = "AGV"
+                                        };
+                                        SendTask_pozmda02.POST(body);
+                                        //taskObstacleDetectionSended = true;
+                                    }
+                                }
+                            }
+
+                            #region UpdateTimeOccured Obstacle Detection occure
+                            //
+                            if (machineID == 1)
+                            {
+                                if (!(agv_1_ObstacleDetected))
+                                {
+                                    await AGV_UpdateAlarm.Get(machineID, true);
+                                    agv_1_ObstacleDetected = true;
+                                }
+                            }
+                            else if (machineID == 2)
+                            {
+                                if (!(agv_2_ObstacleDetected))
+                                {
+                                    await AGV_UpdateAlarm.Get(machineID, true);
+                                    agv_2_ObstacleDetected = true;
+                                }
+                            }
+                            else if (machineID == 3)
+                            {
+                                if (!(agv_3_ObstacleDetected))
+                                {
+                                    await AGV_UpdateAlarm.Get(machineID, true);
+                                    agv_3_ObstacleDetected = true;
+                                }
+                            }
+
+                            #endregion
+
+                            break;
+                        //
+                        case 556:
+                            //_______________________________________________________
+                            // 
+                            // Load sensor does not detected pallet after pick up
+                            // Nie wykryto palety 
+                            // ______________________________________________________
+
+                            string agvName = "";
+                            //
+                            #region AGV Names create 
+
+                            switch (machineID){
+                                case 1:
+                                    agvName = "A-Mate 1";
+                                        break;
+                                case 2:
+                                    agvName = "A-Mate 2";
+                                        break;
+                                case 3:
+                                    agvName = "A-Mate 3"; 
+                                        break;
+                            }
+                            #endregion
+                            //
+                            if (agv_1_loadSensorError == false && agv_2_loadSensorError == false && agv_3_loadSensorError == false)
+                            {
+                                Console.WriteLine("Error : Błąd wykrycia palety - " + item.Machine);
+                                //
+                                SendTask_pozmda02_body body = new SendTask_pozmda02_body()
+                                {
+                                    Name = agvName,
+                                    Details = "Brak palety w punkcie",
+                                    MachineNumber = "AGV"
+                                };
+                                //SendTask_pozmda02.POST(body);
+                            }
+                            stateLoadSensor = true;
+                            switch (machineID)
+                            {
+                                case 1:
+                                    agv_1_loadSensorError = true;
+                                    break;
+                                case 2:
+                                    agv_2_loadSensorError = true;
+                                    break;
+                                case 3:
+                                    agv_3_loadSensorError = true;
+                                    break;
+                            }
+
+                            break;
+                        //
+                        default:
+                            bool stateReset = false;
+                            int idToDelete = 0;
+                            bool warning_622 = false;
+                            // Sprawdzenie czy jest to ostatni element tablicy
+                            if(item == agvMachineAlarmsList[agvMachineAlarmsList.Count - 1])
+                            {
+                                //Reset stanu wykrycia nowego przypadku zaistnienia problemu z wykryciem palety
+                                if (! stateLoadSensor)
+                                {
+                                    agv_1_loadSensorError = false;
+                                    agv_2_loadSensorError = false;
+                                    agv_3_loadSensorError = false;
+                                }
+                                // Reset czasu wystąpienia awari jeśli na liście nie ma zadania 622.
+                                foreach (var agv in listMachineAGV)
+                                {
+
+                                    if (agv.MachineID == 1 && agv_1_obstacleActive == false)
+                                    {
+                                        
+                                        warning_622 = true;
+                                        if (warning_622 == true && (!(agv.AlarmOccuredTime.Year == 1)) && (!(agv.State == 9)))
+                                        {
+                                            await AGV_UpdateAlarm.Get(agv.MachineID, false);
+                                            agv_1_ObstacleDetected = false;
+                                            //
+                                        }
+                                    }
+                                    if (agv.MachineID == 2 && agv_2_obstacleActive == false)
+                                    {
+                                        
+                                        warning_622 = true;
+                                        if (warning_622 == true && (!(agv.AlarmOccuredTime.Year == 1)) && (!(agv.State == 9)))
+                                        {
+                                            await AGV_UpdateAlarm.Get(agv.MachineID, false);
+                                            agv_2_ObstacleDetected = false;
+                                            //
+                                        }
+                                    }
+                                    if (agv.MachineID == 3 && agv_3_obstacleActive == false)
+                                    {
+                                       
+                                        warning_622 = true;
+                                        if (warning_622 == true && (!(agv.AlarmOccuredTime.Year == 1)) && (!(agv.State == 9)))
+                                        {
+                                            await AGV_UpdateAlarm.Get(agv.MachineID, false);
+                                            agv_3_ObstacleDetected = false;
+                                            //
+                                        }
+                                    }
+                                    // 
+                                    if (warning_622 == true && (!(agv.AlarmOccuredTime.Year == 1)))
+                                    {
+                                        //
+                                        foreach (var task in tasksPozmda02)
+                                        {
+                                            if (task.name == agv.MachineName && task.status == 0 && task.details == "Przeszkoda na drodze")
+                                            {
+                                                stateReset = true;
+                                                idToDelete = task.id;
+                                            }
+                                            if ((stateReset == true) && task == tasksPozmda02[tasksPozmda02.Count - 1])
+                                            {
+                                                DeleteDuniTask_pozmda02.DeleteTask(idToDelete);
+                                                stateReset = false;
+                                            }
+                                        }
+                                        taskObstacleDetectionSended = false;
+
+                                    }
+
+                                    warning_622 = false;
+                                }
+                                }
+                            break;
+                    }
+                }
+            }
+        }
         }
        
 }

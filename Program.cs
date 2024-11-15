@@ -14,12 +14,15 @@ namespace AGV_TcpIp_ConsoleApp
 {
     public class Program
     {
+
         // Czas cyklicznego odświeżenia danych w bazie danych 
         public static int SQL_UpdateTime = 5000;
         public static List<ID_309> ListobjId309public { get; set; } = new List<ID_309>();
         public static List<ID_310> ListobjId310public { get; set; } = new List<ID_310>();
         static ID_310 objId310 = new ID_310();
         static Thread t = new Thread(new ThreadStart(UpdateDatainSQL));
+        public static Thread ele_TaskAlarms = new Thread(new ThreadStart(TaskEleAlarms));
+        static Thread ele_TaskWarnings = new Thread(new ThreadStart(TaskEleWarnings));
         //public static string HttpSerwerURI { get; set; } = "https://localhost:44396";
         public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org";
 
@@ -195,6 +198,13 @@ namespace AGV_TcpIp_ConsoleApp
                         Console.WriteLine("Client disconnected");
                         TcpStatusConnection = false;
                     }
+
+                    //_______________________________________________
+                    //
+                    //THREADs
+                    //
+                    //_______________________________________________
+
                     int a = t.ThreadState.GetHashCode();
                     //ThreadState.U
                     if (a == 12 || a == 8)
@@ -202,8 +212,21 @@ namespace AGV_TcpIp_ConsoleApp
                         t.IsBackground = true;
                         t.Start();
                     }
+                    int b = ele_TaskAlarms.ThreadState.GetHashCode();
+                    //ThreadState.U
+                    if (b == 12 || b == 8)
+                    {
+                        ele_TaskAlarms.IsBackground = true;
+                        ele_TaskAlarms.Start();
+                    }
+                    int c = ele_TaskWarnings.ThreadState.GetHashCode();
+                    //ThreadState.U
+                    if (c == 12 || c == 8)
+                    {
+                        ele_TaskWarnings.IsBackground = true;
+                        ele_TaskWarnings.Start();
+                    }
 
-                    await SendTask_Logic.UpdateTasks_ForElectricals(ListobjId310public);
                 }
                 if (client.Connected == false)
                 {
@@ -258,6 +281,27 @@ namespace AGV_TcpIp_ConsoleApp
                     }
 
                 }
+            }
+        }
+
+        static async void TaskEleAlarms()
+        {
+            while (true)
+            {
+                // Zadania Awari na tablet elektryka
+                await SendTask_Logic.UpdateTasks_ForElectricals(ListobjId310public);
+                //
+                Thread.Sleep(millisecondsTimeout: 5000);
+            }
+        }
+        static async void TaskEleWarnings()
+        {
+            while (true)
+            {
+                // Zadanie o przeszkodzie na drodze na tablet elektryka
+                await SendTask_Logic.RecognizeAlarm_Warning(ListobjId309public);
+                //
+                Thread.Sleep(millisecondsTimeout: 5000);
             }
         }
     }

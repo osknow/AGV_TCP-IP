@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
@@ -15,6 +16,8 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
             {
                 using (HttpClient client = new HttpClient())
                 {
+                if(!(id == 0))
+                    { 
                     try
                     {
                         string url = "https://pozmda02.duni.org/api/agv/AGV_AlarmOccur/"+id+"/"+state;
@@ -26,6 +29,12 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
                     {
                         throw e;
                     }
+                    }
+                else
+                {
+                    HttpResponseMessage output = new HttpResponseMessage();
+                    return output;
+                }
                 }
             }
     }

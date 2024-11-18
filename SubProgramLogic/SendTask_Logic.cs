@@ -240,7 +240,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                     }
                                     // Tworzenie zadania
                                     //if ((((!(agv.State == 9)) && (timeNow.AddSeconds(-1) >= agv.AlarmOccuredTime)) && (state == false))&& taskObstacleDetectionSended == false)
-                                    if (((!(agv.State == 9)) && (timeNow.AddMinutes(-1) >= agv.AlarmOccuredTime)) && (state == false))
+                                    if (((!(agv.State == 9)) && (timeNow.AddMinutes(-2) >= agv.AlarmOccuredTime)) && (state == false))
                                     {
                                         SendTask_pozmda02_body body = new SendTask_pozmda02_body()
                                         {

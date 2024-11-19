@@ -26,7 +26,7 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
             }
             catch (Exception e)
             {
-                Console.WriteLine("Błąd podczas odczytywania maszyn  z pozmda02: "+ e);
+                Console.WriteLine("ERROR | Błąd podczas odczytywania maszyn  z pozmda02: " + e);
                 return empty;
             }
         }

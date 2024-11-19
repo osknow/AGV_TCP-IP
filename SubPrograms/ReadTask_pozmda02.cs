@@ -24,7 +24,7 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
                     }
                     catch (HttpRequestException e)
                     {
-                        Console.WriteLine("Bład podczas odczytywania zadań z pozmda02: "+ e);
+                        Console.WriteLine("ERROR | Bład podczas odczytywania zadań z pozmda02: " + e);
                         return empty;
                     }
                 }

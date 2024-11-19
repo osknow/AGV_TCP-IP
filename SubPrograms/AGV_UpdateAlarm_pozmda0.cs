@@ -27,7 +27,7 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
                     }
                     catch (HttpRequestException e)
                     {
-                        Console.WriteLine("Bład podczas aktualizacji czasu wystąpienia awari AGV: "+e);
+                        Console.WriteLine("ERROR | Bład podczas aktualizacji czasu wystąpienia awari AGV: " + e);
                     }
                     }
                 else

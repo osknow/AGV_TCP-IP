@@ -14,25 +14,28 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
     {
             public static async Task<HttpResponseMessage> Get(int id, bool state)
             {
-                using (HttpClient client = new HttpClient())
+            HttpResponseMessage output = new HttpResponseMessage();
+            using (HttpClient client = new HttpClient())
                 {
                 if(!(id == 0))
                     { 
                     try
                     {
                         string url = "https://pozmda02.duni.org/api/agv/AGV_AlarmOccur/"+id+"/"+state;
-                        return await client.GetAsync(url);
+                        output = await client.GetAsync(url);
+                        return output;
 
                         //return response;
                     }
                     catch (HttpRequestException e)
                     {
                         Console.WriteLine("ERROR | Bład podczas aktualizacji czasu wystąpienia awari AGV: " + e);
+                        return output;
                     }
                     }
                 else
                 {
-                    HttpResponseMessage output = new HttpResponseMessage();
+
                     return output;
                 }
                 }

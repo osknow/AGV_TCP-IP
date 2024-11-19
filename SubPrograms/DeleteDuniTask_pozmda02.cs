@@ -29,7 +29,8 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("ERROR | Błąd podczas kasowania zadania o id : " + id + "."); 
+                    Console.WriteLine("ERROR | Błąd podczas kasowania zadania o id : " + id + ".");
+                      
                 }
             }
         }

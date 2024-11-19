@@ -13,6 +13,7 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
     {
         public static async Task<List<AGV_Machine>> Get()
         {
+            List < AGV_Machine> empty = new List<AGV_Machine>();
             string HttpSerwerURI = "https://pozmda02.duni.org/api/Agv/AGV_Machines";
             try
             {
@@ -23,10 +24,10 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
                      
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-
-                throw;
+                Console.WriteLine("Błąd podczas odczytywania maszyn  z pozmda02: "+ e);
+                return empty;
             }
         }
     }

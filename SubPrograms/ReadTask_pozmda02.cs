@@ -15,16 +15,17 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    try
+                List<ReadTask_pozmda02_body> empty = new List<ReadTask_pozmda02_body>();
+                try
                     {
                         string url = "https://pozmda02.duni.org/api/DuniTasks/GetCurrentTasks/electrical";
                         return await client.GetFromJsonAsync<List<ReadTask_pozmda02_body>>(url);
 
-                        //return response;
                     }
                     catch (HttpRequestException e)
                     {
-                        throw e;
+                        Console.WriteLine("Bład podczas odczytywania zadań z pozmda02: "+ e);
+                        return empty;
                     }
                 }
             }

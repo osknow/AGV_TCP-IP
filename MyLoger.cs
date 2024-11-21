@@ -23,6 +23,7 @@ namespace AGV_TcpIp_ConsoleApp
             {
                 Directory.CreateDirectory(LogPath);
                 File.AppendAllText($"{LogPath}\\{DateTime.Now.ToString("dddd_dd_MMMM_yyyy")}_log2.txt", $"{DateTime.Now.ToString("HH:mm:ss")} {value} {Environment.NewLine}");
+            
             }
             public override Encoding Encoding
             {

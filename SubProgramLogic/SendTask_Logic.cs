@@ -195,12 +195,14 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                     #endregion
                     switch (item.NumberId) { 
                     //
-                    case 622:
+                        case 622:
                             //_______________________________________________________
                             // 
                             // Detected an obstacle
                             // Stała przeszkoda na drodze
                             // ______________________________________________________
+
+                            #region 622
                             // Nadanie Id dla maszyn AGV niezbędne do wysałania requestu o zadaniu. 
                             switch (machineID)
                             {
@@ -284,14 +286,18 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             #endregion
 
                             break;
+                        #endregion
                         //
+                        case 613:
                         case 556:
                             //_______________________________________________________
                             // 
-                            // Load sensor does not detected pallet after pick up
+                            // 556 ERROR_LOAD_SENSOR_CONFLICT_AFTER_PICKUP
+                            // 613 WARNING_TARGET_APPROACH_ERROR
                             // Nie wykryto palety 
                             // ______________________________________________________
 
+                            #region 556 613
                             string agvName = "";
                             //
                             #region AGV Names create 
@@ -311,7 +317,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             //
                             if (agv_1_loadSensorError == false && agv_2_loadSensorError == false && agv_3_loadSensorError == false)
                             {
-                                Console.WriteLine("Error : Błąd wykrycia palety - " + item.Machine);
+                                //Console.WriteLine("Error : Błąd wykrycia palety - " + item.Machine);
                                 //
                                 SendTask_pozmda02_body body = new SendTask_pozmda02_body()
                                 {
@@ -319,7 +325,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                     Details = "Brak palety w punkcie",
                                     MachineNumber = "AGV"
                                 };
-                                //SendTask_pozmda02.POST(body);
+                                SendTask_pozmda02.POST(body);
                             }
                             stateLoadSensor = true;
                             switch (machineID)
@@ -336,6 +342,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             }
 
                             break;
+                        #endregion
                         //
                         default:
                             bool stateReset = false;

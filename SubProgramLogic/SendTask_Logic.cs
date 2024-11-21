@@ -357,6 +357,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                     agv_1_loadSensorError = false;
                                     agv_2_loadSensorError = false;
                                     agv_3_loadSensorError = false;
+                                    //
                                 }
                                 // Reset czasu wystąpienia awari jeśli na liście nie ma zadania 622.
                                 foreach (var agv in listMachineAGV)
@@ -395,7 +396,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                             //
                                         }
                                     }
-                                    // 
+                                    // RESET zadania przeszkoda na drodze w DUNITASK
                                     if (warning_622 == true && (!(agv.AlarmOccuredTime.Year == 1)))
                                     {
                                         //
@@ -414,6 +415,23 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                         }
                                         taskObstacleDetectionSended = false;
 
+                                    }
+                                    // RESET zadania z brakiem palety pod maszyna w DUNITASK
+                                    if (!stateLoadSensor)
+                                    {
+                                        foreach (var task in tasksPozmda02)
+                                        {
+                                            if (task.name == agv.MachineName && task.status == 0 && task.details == "Brak palety w punkcie")
+                                            {
+                                                stateReset = true;
+                                                idToDelete = task.id;
+                                            }
+                                            if ((stateReset == true) && task == tasksPozmda02[tasksPozmda02.Count - 1])
+                                            {
+                                                DeleteDuniTask_pozmda02.DeleteTask(idToDelete);
+                                                stateReset = false;
+                                            }
+                                        }
                                     }
 
                                     warning_622 = false;

@@ -22,7 +22,7 @@ namespace AGV_TcpIp_ConsoleApp
         static ID_310 objId310 = new ID_310();
         static Thread t = new Thread(new ThreadStart(UpdateDatainSQL));
         public static Thread ele_TaskAlarms = new Thread(new ThreadStart(TaskEleAlarms));
-        static Thread ele_TaskWarnings = new Thread(new ThreadStart(TaskEleWarnings));
+        static Thread ele_TaskWarnings = new Thread(new ThreadStart(  TaskEleWarnings));
         //public static string HttpSerwerURI { get; set; } = "https://localhost:44396";
         public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org";
 
@@ -289,9 +289,9 @@ namespace AGV_TcpIp_ConsoleApp
             while (true)
             {
                 // Zadania Awari na tablet elektryka
-                await SendTask_Logic.UpdateTasks_ForElectricals(ListobjId310public);
+                SendTask_Logic.UpdateTasks_ForElectricals(ListobjId310public);
                 //
-                Thread.Sleep(millisecondsTimeout: 5000);
+                Thread.Sleep(millisecondsTimeout: 10000);
             }
         }
         static async void TaskEleWarnings()
@@ -299,9 +299,10 @@ namespace AGV_TcpIp_ConsoleApp
             while (true)
             {
                 // Zadanie o przeszkodzie na drodze na tablet elektryka
-                await SendTask_Logic.RecognizeAlarm_Warning(ListobjId309public);
+                // ZADANIA NIE MOGĄ BYĆ ASYNCHRONICZNE !!!!
+                SendTask_Logic.RecognizeAlarm_Warning(ListobjId309public);
                 //
-                Thread.Sleep(millisecondsTimeout: 5000);
+                Thread.Sleep(millisecondsTimeout: 10000);
             }
         }
     }

@@ -196,9 +196,11 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                     switch (item.NumberId) { 
                     //
                         case 622:
+                        case 620:
                             //_______________________________________________________
                             // 
-                            // Detected an obstacle
+                            // 622 WARNING_OBSTACLE_DETECTED
+                            // 620 WARNING_SYMBOL_POINT_OCCUPIED
                             // Stała przeszkoda na drodze
                             // ______________________________________________________
 
@@ -409,7 +411,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                             }
                                             if ((stateReset == true) && task == tasksPozmda02[tasksPozmda02.Count - 1])
                                             {
-                                                DeleteDuniTask_pozmda02.DeleteTask(idToDelete);
+                                                await DeleteDuniTask_pozmda02.DeleteTask(idToDelete);
                                                 stateReset = false;
                                             }
                                         }
@@ -428,7 +430,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                             }
                                             if ((stateReset == true) && task == tasksPozmda02[tasksPozmda02.Count - 1])
                                             {
-                                                DeleteDuniTask_pozmda02.DeleteTask(idToDelete);
+                                                await DeleteDuniTask_pozmda02.DeleteTask(idToDelete);
                                                 stateReset = false;
                                             }
                                         }

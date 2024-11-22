@@ -11,7 +11,7 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
     {
         public static async Task DeleteTask(int id)
         {
-            var url = $"https://pozmda02.duni.org/api/DuniTasks/endTaskByAIP/{id}";
+            var url = $"https://pozmda02.duni.org/api/DuniTasks/endTaskByAIP/"+id;
             // LINK:
             //pozmda01.duni.org:81//api/DuniTasks/changeTaskStatusByAGV/{status}/{duniTaskDetails}"
 

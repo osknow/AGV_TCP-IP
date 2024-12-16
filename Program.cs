@@ -289,7 +289,7 @@ namespace AGV_TcpIp_ConsoleApp
             while (true)
             {
                 // Zadania Awari na tablet elektryka
-                SendTask_Logic.UpdateTasks_ForElectricals(ListobjId310public);
+                SendTask_Logic.RecognizeAlarm(ListobjId310public);
                 //
                 Thread.Sleep(millisecondsTimeout: 10000);
             }
@@ -300,7 +300,7 @@ namespace AGV_TcpIp_ConsoleApp
             {
                 // Zadanie o przeszkodzie na drodze na tablet elektryka
                 // ZADANIA NIE MOGĄ BYĆ ASYNCHRONICZNE !!!!
-                SendTask_Logic.RecognizeAlarm_Warning(ListobjId309public);
+                SendTask_Logic.RecognizeWarning(ListobjId309public);
                 //
                 Thread.Sleep(millisecondsTimeout: 10000);
             }

@@ -22,7 +22,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
         //
         static bool taskObstacleDetectionSended = false;
         //
-        public static async Task UpdateTasks_ForElectricals(List<ID_310> agvMachineStatus)
+        public static async Task RecognizeAlarm(List<ID_310> agvMachineStatus)
         {
 
             try
@@ -149,7 +149,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
             }
 
                 }
-        public static async Task RecognizeAlarm_Warning(List<ID_309> agvMachineAlarmsList)
+        public static async Task RecognizeWarning(List<ID_309> agvMachineAlarmsList)
         {
             // Sprawdzenie listy czy nie jest pusta
             //
@@ -173,22 +173,18 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                     #region AGV_Ids
                     switch (item.Machine)
                     {
+                        case "AGV1":
                         case "AGV 1":
                             machineID = 1;
                             break;
+                        //
+                        case "AGV2":
                         case "AGV 2":
                             machineID = 2;
                             break;
-                        case "AGV 3":
-                            machineID = 3;
-                            break;
-                        case "AGV1":
-                            machineID = 1;
-                            break;
-                        case "AGV2":
-                            machineID = 2;
-                            break;
+                        //
                         case "AGV3":
+                        case "AGV 3":
                             machineID = 3;
                             break;
                     }
@@ -204,27 +200,26 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             // Stała przeszkoda na drodze
                             // ______________________________________________________
 
-                            #region 622
+                            #region Warnings 622 620
                             // Nadanie Id dla maszyn AGV niezbędne do wysałania requestu o zadaniu. 
                             switch (machineID)
                             {
                                 case 1:
-
                                     agv_1_obstacleActive = true;
                                     break;
+                                //
                                 case 2:
-
                                     agv_2_obstacleActive = true;
                                     break;
+                                //
                                 case 3:
-
                                     agv_3_obstacleActive = true;
                                     break;
-                                default:
-                                    agv_1_obstacleActive = true;
-                                    agv_2_obstacleActive = true;
-                                    agv_3_obstacleActive = true;
-                                    break;
+                                //default:
+                                //    agv_1_obstacleActive = true;
+                                //    agv_2_obstacleActive = true;
+                                //    agv_3_obstacleActive = true;
+                                //    break;
                             }
                             //
                             DateTime timeNow = DateTime.Now; 
@@ -235,16 +230,28 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                 {
                                     // Sprawdenie czy na liście zadań nie istnieje już jakiś alarm dla maszyny AGV jeśli istnieje alarm to nie wysyłamy komunikatu o przeszkodzie
                                     // Odwrotnie tak samo -ZASADA że tylko jedno zadanie z AGV na liście u elektryków.
-                                    foreach (var task in tasksPozmda02)
+                                    if(tasksPozmda02.Count == 0)
                                     {
-                                        if (task.name == agv.MachineName)
+                                        //
+                                        //Sprawdzenie czy serwer odpowiada jeśli nie to zablokowanie wysłania zadania dla elektryków.
+                                        HttpResponseMessage responseLiveBit = await LiveBit_pozmda02.Get();
+                                        if(!responseLiveBit.IsSuccessStatusCode)
                                         {
                                             state = true;
                                         }
                                     }
+                                    else { 
+                                        foreach (var task in tasksPozmda02)
+                                        {
+                                            if (task.name == agv.MachineName)
+                                            {
+                                                state = true;
+                                            }
+                                        }
+                                    }
                                     // Tworzenie zadania
                                     //if ((((!(agv.State == 9)) && (timeNow.AddSeconds(-1) >= agv.AlarmOccuredTime)) && (state == false))&& taskObstacleDetectionSended == false)
-                                    if (((!(agv.State == 9)) && (timeNow.AddMinutes(-2) >= agv.AlarmOccuredTime)) && (state == false))
+                                    if (((!(agv.State == 9)) && (timeNow.AddMinutes(-2) >= agv.AlarmOccuredTime)) && (state == false) && (! agv.AGV_SerwviceWork) && (! agv_3_ObstacleDetected))
                                     {
                                         SendTask_pozmda02_body body = new SendTask_pozmda02_body()
                                         {
@@ -299,25 +306,36 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             // Nie wykryto palety 
                             // ______________________________________________________
 
-                            #region 556 613
+                            #region Warnings 556 613
                             string agvName = "";
                             //
                             #region AGV Names create 
-
+                            AGV_Machine agv_machine = new AGV_Machine();
                             switch (machineID){
                                 case 1:
                                     agvName = "A-Mate 1";
-                                        break;
+                                    agv_machine = listMachineAGV.Find(x => x.MachineName == agvName);
+                                    break;
                                 case 2:
                                     agvName = "A-Mate 2";
-                                        break;
+                                    agv_machine = listMachineAGV.Find(x => x.MachineName == agvName);
+                                    break;
                                 case 3:
-                                    agvName = "A-Mate 3"; 
-                                        break;
+                                    agvName = "A-Mate 3";
+                                    agv_machine = listMachineAGV.Find(x => x.MachineName == agvName);
+                                    break;
                             }
                             #endregion
                             //
-                            if (agv_1_loadSensorError == false && agv_2_loadSensorError == false && agv_3_loadSensorError == false)
+                            //Sprawdzenie czy serwer pozmda02 odpowiada jeśli nie to zablokowanie wysłania zadania dla elektryków.
+                            bool liveBit = true;
+                            HttpResponseMessage responsLiveBit_2 = await LiveBit_pozmda02.Get();
+                            if (!responsLiveBit_2.IsSuccessStatusCode)
+                            {
+                                liveBit = false;
+                            }
+                            //
+                            if (agv_1_loadSensorError == false && agv_2_loadSensorError == false && agv_3_loadSensorError == false && (! agv_machine.AGV_SerwviceWork) && liveBit)
                             {
                                 //Console.WriteLine("Error : Błąd wykrycia palety - " + item.Machine);
                                 //
@@ -350,6 +368,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             bool stateReset = false;
                             int idToDelete = 0;
                             bool warning_622 = false;
+                            //
                             // Sprawdzenie czy jest to ostatni element tablicy
                             if(item == agvMachineAlarmsList[agvMachineAlarmsList.Count - 1])
                             {

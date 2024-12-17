@@ -26,7 +26,7 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
                 }
                 catch (HttpRequestException e)
                 {
-                    Console.WriteLine("ERROR | Błąd podczas wysyłania zadania dla elektryków: " + e);
+                    Console.WriteLine("ERROR | Błąd podczas sprawdzenia stanu serwera pozmda02 - liveBit check. " + e);
                     return response;
                 }
             }

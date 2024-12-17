@@ -78,7 +78,6 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                             }
                                             else if (nowtime.AddMinutes( - 2) >= machineAGV.AlarmOccuredTime)
                                             {
-                                                //Tymczsowo zabolkowane wysyłanie zadań do elektryków - TESTY - 05_11_2024
                                                 //
                                                 SendTask_pozmda02.POST(body);
                                                 //
@@ -103,7 +102,6 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                     }
                                     else if (nowtime.AddMinutes(-2) >= machineAGV.AlarmOccuredTime)
                                     {
-                                        //Tymczsowo zabolkowane wysyłanie zadań do elektryków - TESTY - 05_11_2024
                                         //
                                         SendTask_pozmda02.POST(body);
                                         //
@@ -165,8 +163,9 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                 bool agv_3_obstacleActive = false;
                 //
                 bool state = false;
+                //
                 bool stateLoadSensor = false;
-
+                //
                 int machineID = 0;
                 foreach (var item in agvMachineAlarmsList) {
                     //
@@ -189,6 +188,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             break;
                     }
                     #endregion
+                    //Switch po ID alarmów które widizmy na stronie : https://pozmda02.duni.org/Agv/AGV_AlarmListView
                     switch (item.NumberId) { 
                     //
                         case 622:
@@ -235,7 +235,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                         //
                                         //Sprawdzenie czy serwer odpowiada jeśli nie to zablokowanie wysłania zadania dla elektryków.
                                         HttpResponseMessage responseLiveBit = await LiveBit_pozmda02.Get();
-                                        if(!responseLiveBit.IsSuccessStatusCode)
+                                        if(! responseLiveBit.IsSuccessStatusCode)
                                         {
                                             state = true;
                                         }
@@ -250,8 +250,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                         }
                                     }
                                     // Tworzenie zadania
-                                    //if ((((!(agv.State == 9)) && (timeNow.AddSeconds(-1) >= agv.AlarmOccuredTime)) && (state == false))&& taskObstacleDetectionSended == false)
-                                    if (((!(agv.State == 9)) && (timeNow.AddMinutes(-2) >= agv.AlarmOccuredTime)) && (state == false) && (! agv.AGV_SerwviceWork) && (! agv_3_ObstacleDetected))
+                                    if (((!(agv.State == 9)) && (timeNow.AddMinutes(-2) >= agv.AlarmOccuredTime)) && (state == false) && (! agv.AGV_SerwviceWork) && ((agv_1_ObstacleDetected == true && machineID == 1) || (agv_2_ObstacleDetected == true && machineID == 2) || (agv_3_ObstacleDetected == true && machineID == 3)))
                                     {
                                         SendTask_pozmda02_body body = new SendTask_pozmda02_body()
                                         {
@@ -335,7 +334,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                 liveBit = false;
                             }
                             //
-                            if (agv_1_loadSensorError == false && agv_2_loadSensorError == false && agv_3_loadSensorError == false && (! agv_machine.AGV_SerwviceWork) && liveBit)
+                            if (((agv_1_loadSensorError == false && machineID == 1) || (agv_2_loadSensorError == false && machineID == 2) || (agv_3_loadSensorError == false && machineID == 3)) && (! agv_machine.AGV_SerwviceWork) && liveBit)
                             {
                                 //Console.WriteLine("Error : Błąd wykrycia palety - " + item.Machine);
                                 //
@@ -347,7 +346,9 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                 };
                                 SendTask_pozmda02.POST(body);
                             }
+                            //
                             stateLoadSensor = true;
+                            //
                             switch (machineID)
                             {
                                 case 1:
@@ -373,17 +374,19 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             if(item == agvMachineAlarmsList[agvMachineAlarmsList.Count - 1])
                             {
                                 //Reset stanu wykrycia nowego przypadku zaistnienia problemu z wykryciem palety
-                                if (! stateLoadSensor)
+                                #region Reset LoadSensorError
+                                //
+                                if (stateLoadSensor == false)
                                 {
                                     agv_1_loadSensorError = false;
                                     agv_2_loadSensorError = false;
                                     agv_3_loadSensorError = false;
-                                    //
                                 }
+                                #endregion
                                 // Reset czasu wystąpienia awari jeśli na liście nie ma zadania 622.
                                 foreach (var agv in listMachineAGV)
                                 {
-
+                                    //
                                     if (agv.MachineID == 1 && agv_1_obstacleActive == false)
                                     {
                                         
@@ -435,7 +438,6 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                             }
                                         }
                                         taskObstacleDetectionSended = false;
-
                                     }
                                     // RESET zadania z brakiem palety pod maszyna w DUNITASK
                                     if (!stateLoadSensor)
@@ -454,7 +456,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                             }
                                         }
                                     }
-
+                                    //
                                     warning_622 = false;
                                 }
                                 }

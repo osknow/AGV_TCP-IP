@@ -6,6 +6,24 @@ using System.Threading.Tasks;
 
 namespace AGV_TcpIp_ConsoleApp
 {
+    public enum EnumErrorType: UInt16
+    {
+        Unknown = 0,
+        SystemAlarm = 1,
+        EntityAlarm = 2,
+        MachineAlarm = 3,
+        SymbolicPointAlarm = 4,
+        WaypointAlarm = 5
+    }
+    public enum  EnumSource: byte
+    {
+        Unknown = 0,
+        FleetControl = 1,
+        Machine = 2,
+        Supervisor = 3,
+        Component = 4,
+        MES = 5
+    }
     public class ID_310
     {
         public int MachineID { get; set; }
@@ -46,5 +64,16 @@ namespace AGV_TcpIp_ConsoleApp
         public UInt16 Value { get; set; }
         public DateTime UpdatedTime { get; set; }
     }
-
+    public class ID_349
+    {
+        public UInt32 Id { get; set; }
+        public UInt16 NameStringLength { get; set; }
+        public string Name { get; set; }
+        public EnumErrorType ErrorType { get; set; }
+        public UInt32 EntityID { get; set; }
+        public EnumSource Source { get; set; }
+        public byte Level { get; set; }
+        public UInt16 Value { get; set; }
+        public Int16 Priority { get; set; }
+    }
 }

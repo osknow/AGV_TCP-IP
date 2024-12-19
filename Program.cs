@@ -19,7 +19,11 @@ namespace AGV_TcpIp_ConsoleApp
         public static int SQL_UpdateTime = 5000;
         public static List<ID_309> ListobjId309public { get; set; } = new List<ID_309>();
         public static List<ID_310> ListobjId310public { get; set; } = new List<ID_310>();
+        public static List<ID_349> ListobjId349public { get; set; } = new List<ID_349>();
+        //
         static ID_310 objId310 = new ID_310();
+        static ID_349 objId349 = new ID_349();
+        //
         static Thread t = new Thread(new ThreadStart(UpdateDatainSQL));
         public static Thread ele_TaskAlarms = new Thread(new ThreadStart(TaskEleAlarms));
         static Thread ele_TaskWarnings = new Thread(new ThreadStart(  TaskEleWarnings));
@@ -71,7 +75,9 @@ namespace AGV_TcpIp_ConsoleApp
                     var output = await networkStream.ReadAsync(receiveBuffer, 0, receiveBuffer.Length);
                     int iD = System.BitConverter.ToInt16(receiveBuffer, 0);
                     String responseData = String.Empty;
-
+                    //
+                    //Errors (ID = 309)
+                    // This message is sent periodically from Navithor to MES. Message contains current error status in the system.
                     if (iD == 309)
                     {
                         ListobjId309public.Clear();
@@ -106,8 +112,12 @@ namespace AGV_TcpIp_ConsoleApp
                             begine += NameLength + 4;
                         }
                     }
-
-
+                    //
+                    // AGVStatus (ID = 310)
+                    //Periodic status message from a single machine in the system. Sending interval can be changed from Navithor Server
+                    //parameters: Interval_To_Send_AGV_Status_To_MES_When_AGV_Enabled and
+                    //Interval_To_Send_AGV_Status_To_MES_When_AGV_Disabled.Parameter
+                    //MES_Disable_Outbound_Message_Groups_Rules can be used to disable message completely.
                     if (iD == 310)
                     {
 
@@ -187,6 +197,53 @@ namespace AGV_TcpIp_ConsoleApp
                             }
                         }
                         ListobjId310public.Add(objId310);
+                    }
+                    //
+                    // ErrorsV2 (ID = 349)
+                    //This message is sent as a response to ErrorsV2 request (ID = 56).
+                    if (iD == 349)
+                    {
+                        ListobjId349public.Clear();
+                        DateTime czas = DateTime.Now;
+                        //Console.WriteLine("ID = 309 | czas: " + czas);
+                        //
+                        //Sprawdzenie ilości przychodzących alarmów 
+                        UInt16 NumberOfErrors = System.BitConverter.ToUInt16(receiveBuffer, 9);
+                        //8.1. Frame
+                        //Every message has a frame that consists of following data. Sender ID and Receiver ID are specified as follow:
+                        //Navithor: ID = 1000, MES clients: ID = 1001, 1002, ... For example when sending a message from MES to Navithor
+                        //Sender ID = 1001 and Receiver ID = 1000.
+                        int begine = 11;
+                        int begine_swap = begine;
+                        UInt16 i = 0;
+                        //
+                        while (i < NumberOfErrors)
+                        {
+                            ID_349 objId349 = new ID_349();
+                            //
+                            // Object
+                            objId349.Id = System.BitConverter.ToUInt32(receiveBuffer, begine_swap);
+                            begine_swap += 4;
+                            objId349.NameStringLength = System.BitConverter.ToUInt16(receiveBuffer, begine_swap);
+                            begine_swap += 2;
+                            objId349.Name = System.Text.Encoding.ASCII.GetString(receiveBuffer, begine_swap, objId349.NameStringLength);
+                            begine_swap += objId349.NameStringLength;
+                            objId349.ErrorType = (EnumErrorType)System.BitConverter.ToUInt16(receiveBuffer, begine_swap);
+                            begine_swap += 2;
+                            objId349.EntityID = System.BitConverter.ToUInt32(receiveBuffer, begine_swap);
+                            begine_swap += 4;
+                            objId349.Source = (EnumSource)receiveBuffer[begine_swap];
+                            begine_swap += 1;
+                            objId349.Level = receiveBuffer[begine_swap];
+                            begine_swap += 1;
+                            objId349.Value = System.BitConverter.ToUInt16(receiveBuffer, begine_swap);
+                            begine_swap += 2;
+                            objId349.Priority = System.BitConverter.ToInt16(receiveBuffer, begine_swap);
+                            begine_swap += 2;
+                            //
+                            ListobjId349public.Add(objId349);
+                            i += 1;
+                        }
                     }
                     //
                     //Reconnect

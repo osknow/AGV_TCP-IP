@@ -458,3 +458,8 @@ $RECYCLE.BIN/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+
+# Ignore all bin and obj folders in all directories
+*/bin/
+*/obj/

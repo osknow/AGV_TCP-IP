@@ -20,6 +20,10 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
         static bool agv_2_loadSensorError = false;
         static bool agv_3_loadSensorError = false;
         //
+        static bool agv_1_forkliftFailureError = false;
+        static bool agv_2_forkliftFailureError = false;
+        static bool agv_3_forkliftFailureError = false;
+        //
         static bool taskObstacleDetectionSended = false;
         //
         public static async Task RecognizeAlarm(List<ID_310> agvMachineStatus)
@@ -165,8 +169,14 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                 bool state = false;
                 //
                 bool stateLoadSensor = false;
+                bool stateForkliftFailure = false;
                 //
                 int machineID = 0;
+                string agvName;
+                AGV_Machine agv_machine;
+                bool liveBit;
+                HttpResponseMessage responsLiveBit_2;
+
                 foreach (var item in agvMachineAlarmsList) {
                     //
                     #region AGV_Ids
@@ -306,10 +316,10 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             // ______________________________________________________
 
                             #region Warnings 556 613
-                            string agvName = "";
+                            agvName = "";
                             //
                             #region AGV Names create 
-                            AGV_Machine agv_machine = new AGV_Machine();
+                            agv_machine = new AGV_Machine();
                             switch (machineID){
                                 case 1:
                                     agvName = "A-Mate 1";
@@ -327,8 +337,8 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             #endregion
                             //
                             //Sprawdzenie czy serwer pozmda02 odpowiada jeśli nie to zablokowanie wysłania zadania dla elektryków.
-                            bool liveBit = true;
-                            HttpResponseMessage responsLiveBit_2 = await LiveBit_pozmda02.Get();
+                            liveBit = true;
+                            responsLiveBit_2 = await LiveBit_pozmda02.Get();
                             if (!responsLiveBit_2.IsSuccessStatusCode)
                             {
                                 liveBit = false;
@@ -365,6 +375,79 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             break;
                         #endregion
                         //
+                        case 644:
+                        case 647:
+                        case 201:
+                            //_______________________________________________________
+                            // 
+                            // 644 WARNING_CHANGING_LOAD_OR_UNLOAD_HEIGHT
+                            // 647 WARNING_DECREASING_FORK_TO_ROUTE_LEVEL
+                            // 201 ERROR_VEH_INTE_MSG_PARSE
+                            // Awaria wózka
+                            // ______________________________________________________
+
+                            #region Warnings 644 647 201
+                            agvName = "";
+                            //
+                            #region AGV Names create 
+                            agv_machine = new AGV_Machine();
+                            switch (machineID)
+                            {
+                                case 1:
+                                    agvName = "A-Mate 1";
+                                    agv_machine = listMachineAGV.Find(x => x.MachineName == agvName);
+                                    break;
+                                case 2:
+                                    agvName = "A-Mate 2";
+                                    agv_machine = listMachineAGV.Find(x => x.MachineName == agvName);
+                                    break;
+                                case 3:
+                                    agvName = "A-Mate 3";
+                                    agv_machine = listMachineAGV.Find(x => x.MachineName == agvName);
+                                    break;
+                            }
+                            #endregion
+                            //
+                            //Sprawdzenie czy serwer pozmda02 odpowiada jeśli nie to zablokowanie wysłania zadania dla elektryków.
+                            liveBit = true;
+                            responsLiveBit_2 = await LiveBit_pozmda02.Get();
+                            if (!responsLiveBit_2.IsSuccessStatusCode)
+                            {
+                                liveBit = false;
+                            }
+                            //
+                            if (((agv_1_forkliftFailureError == false && machineID == 1) || (agv_2_forkliftFailureError == false && machineID == 2) || (agv_3_forkliftFailureError == false && machineID == 3)) && (!agv_machine.AGV_SerwviceWork) && liveBit)
+                            {
+                                //Console.WriteLine("Error : Błąd wykrycia palety - " + item.Machine);
+                                //
+                                SendTask_pozmda02_body body = new SendTask_pozmda02_body()
+                                {
+                                    Name = agvName,
+                                    Details = "Awaria wózka",
+                                    MachineNumber = "AGV"
+                                };
+                                await SendTask_pozmda02.POST(body);
+                            }
+                            //
+                            stateForkliftFailure = true;
+                            //
+                            switch (machineID)
+                            {
+                                case 1:
+                                    agv_1_forkliftFailureError = true;
+                                    break;
+                                case 2:
+                                    agv_2_forkliftFailureError = true;
+                                    break;
+                                case 3:
+                                    agv_3_forkliftFailureError = true;
+                                    break;
+                            }
+                            break;
+
+                        #endregion
+
+                        
                         default:
                             bool stateReset = false;
                             int idToDelete = 0;
@@ -382,6 +465,15 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                     agv_2_loadSensorError = false;
                                     agv_3_loadSensorError = false;
                                 }
+                                if (stateForkliftFailure == false)
+                                {
+                                    agv_1_forkliftFailureError = false;
+                                    agv_2_forkliftFailureError = false;
+                                    agv_3_forkliftFailureError = false;
+                                }
+                                
+
+
                                 #endregion
                                 // Reset czasu wystąpienia awari jeśli na liście nie ma zadania 622.
                                 foreach (var agv in listMachineAGV)
@@ -457,6 +549,25 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                         }
                                     }
                                     //
+                                    // RESET zadania z brakiem palety pod maszyna w DUNITASK
+                                    if (!stateForkliftFailure)
+                                    {
+                                        foreach (var task in tasksPozmda02)
+                                        {
+                                            if (task.name == agv.MachineName && task.status == 0 && task.details == "Awaria wózka")
+                                            {
+                                                stateReset = true;
+                                                idToDelete = task.id;
+                                            }
+                                            if ((stateReset == true) && task == tasksPozmda02[tasksPozmda02.Count - 1])
+                                            {
+                                                await DeleteDuniTask_pozmda02.DeleteTask(idToDelete);
+                                                stateReset = false;
+                                            }
+                                        }
+                                    }
+                                    //
+
                                     warning_622 = false;
                                 }
                                 }

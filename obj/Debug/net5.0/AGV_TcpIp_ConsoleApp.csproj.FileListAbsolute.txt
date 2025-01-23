@@ -46,3 +46,11 @@ C:\Users\osknowpa\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.dll
 C:\Users\osknowpa\AGV_TCP-IP\obj\Debug\net5.0\ref\AGV_TcpIp_ConsoleApp.dll
 C:\Users\osknowpa\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.pdb
 C:\Users\osknowpa\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.genruntimeconfig.cache
+C:\Users\arkurb\source\repos\AGV\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.csproj.AssemblyReference.cache
+C:\Users\arkurb\source\repos\AGV\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\arkurb\source\repos\AGV\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.AssemblyInfoInputs.cache
+C:\Users\arkurb\source\repos\AGV\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.AssemblyInfo.cs
+C:\Users\arkurb\source\repos\AGV\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.csproj.CoreCompileInputs.cache
+C:\Users\arkurb\source\repos\AGV\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.dll
+C:\Users\arkurb\source\repos\AGV\AGV_TCP-IP\obj\Debug\net5.0\ref\AGV_TcpIp_ConsoleApp.dll
+C:\Users\arkurb\source\repos\AGV\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.pdb

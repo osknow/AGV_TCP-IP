@@ -203,10 +203,21 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                     //
                         case 622:
                         case 620:
+                        case 323:
+                        case 322:
+                        case 324:
+                        case 607:
+
                             //_______________________________________________________
                             // 
                             // 622 WARNING_OBSTACLE_DETECTED
                             // 620 WARNING_SYMBOL_POINT_OCCUPIED
+                            // 323 WARNING_SAFETY_SCANNER_WARNING_ZONE1
+                            // 322 WARNING_SAFETY_SCANNER_PROTECTION_ZONE
+                            // 324 WARNING_SAFETY_SCANNER_WARNING_ZONE2
+                            // 607 WARNING_SAFETY_SCANNER_OBSTACLE
+
+
                             // Stała przeszkoda na drodze
                             // ______________________________________________________
 
@@ -423,7 +434,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                 SendTask_pozmda02_body body = new SendTask_pozmda02_body()
                                 {
                                     Name = agvName,
-                                    Details = "Awaria wózka",
+                                    Details = "Błąd wideł",
                                     MachineNumber = "AGV"
                                 };
                                 await SendTask_pozmda02.POST(body);
@@ -554,7 +565,7 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                                     {
                                         foreach (var task in tasksPozmda02)
                                         {
-                                            if (task.name == agv.MachineName && task.status == 0 && task.details == "Awaria wózka")
+                                            if (task.name == agv.MachineName && task.status == 0 && task.details == "Błąd wideł")
                                             {
                                                 stateReset = true;
                                                 idToDelete = task.id;

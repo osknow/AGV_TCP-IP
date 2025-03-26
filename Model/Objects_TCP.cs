@@ -66,7 +66,8 @@ namespace AGV_TcpIp_ConsoleApp
     }
     public class ID_349
     {
-        public UInt32 Id { get; set; }
+        public int Id { get; set; }
+        public UInt32 ErrorId { get; set; }
         public UInt16 NameStringLength { get; set; }
         public string Name { get; set; }
         public EnumErrorType ErrorType { get; set; }

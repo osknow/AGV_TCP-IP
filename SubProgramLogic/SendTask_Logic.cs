@@ -216,9 +216,8 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             // 322 WARNING_SAFETY_SCANNER_PROTECTION_ZONE
                             // 324 WARNING_SAFETY_SCANNER_WARNING_ZONE2
                             // 607 WARNING_SAFETY_SCANNER_OBSTACLE
-
-
-                            // Stała przeszkoda na drodze
+                            //
+                            // Przeszkoda na drodze
                             // ______________________________________________________
 
                             #region Warnings 622 620
@@ -323,7 +322,8 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             // 
                             // 556 ERROR_LOAD_SENSOR_CONFLICT_AFTER_PICKUP
                             // 613 WARNING_TARGET_APPROACH_ERROR
-                            // Nie wykryto palety 
+                            //
+                            // Brak palety w punkcie
                             // ______________________________________________________
 
                             #region Warnings 556 613
@@ -394,7 +394,8 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                             // 644 WARNING_CHANGING_LOAD_OR_UNLOAD_HEIGHT
                             // 647 WARNING_DECREASING_FORK_TO_ROUTE_LEVEL
                             // 201 ERROR_VEH_INTE_MSG_PARSE
-                            // Awaria wózka
+                            //
+                            // Bład wideł
                             // ______________________________________________________
 
                             #region Warnings 644 647 201

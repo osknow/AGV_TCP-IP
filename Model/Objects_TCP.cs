@@ -76,5 +76,11 @@ namespace AGV_TcpIp_ConsoleApp
         public byte Level { get; set; }
         public UInt16 Value { get; set; }
         public Int16 Priority { get; set; }
+        public DateTime OccurTime { get; set; }
+    }
+    public class AGV_AlarmsUpdateRequest
+    {
+        public List<ID_349> DataToDelete { get; set; }
+        public List<ID_349> DataToAdd { get; set; }
     }
 }

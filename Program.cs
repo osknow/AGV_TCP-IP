@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -10,8 +11,19 @@ using AGV_TcpIp_ConsoleApp.Model;
 using AGV_TcpIp_ConsoleApp.SubProgramLogic;
 using AGV_TcpIp_ConsoleApp.SubPrograms;
 
+
+
+
 namespace AGV_TcpIp_ConsoleApp
 {
+    public static class Extensions
+    {
+        public static IEnumerable<T> ExceptBy<T, TKey>(this IEnumerable<T> first, IEnumerable<T> second, Func<T, TKey> keySelector)
+        {
+            var secondKeys = new HashSet<TKey>(second.Select(keySelector));
+            return first.Where(item => !secondKeys.Contains(keySelector(item)));
+        }
+    }
     public class Program
     {
 
@@ -20,6 +32,7 @@ namespace AGV_TcpIp_ConsoleApp
         public static List<ID_309> ListobjId309public { get; set; } = new List<ID_309>();
         public static List<ID_310> ListobjId310public { get; set; } = new List<ID_310>();
         public static List<ID_349> ListobjId349public { get; set; } = new List<ID_349>();
+        public static List<ID_349> ListobjId349publicLastUpdated { get; set; } = new List<ID_349>();
         //
         static ID_310 objId310 = new ID_310();
         static ID_349 objId349 = new ID_349();
@@ -27,9 +40,9 @@ namespace AGV_TcpIp_ConsoleApp
         static Thread t = new Thread(new ThreadStart(UpdateDatainSQL));
         public static Thread ele_TaskAlarms = new Thread(new ThreadStart(TaskEleAlarms));
         static Thread ele_TaskWarnings = new Thread(new ThreadStart(  TaskEleWarnings));
-        //static Thread send_TCP_ID_56 = new Thread(new ThreadStart(  SendTCP_ID_56));
-
+        //
         // TESTY LOKALNE 
+        //
         public static string HttpSerwerURI { get; set; } = "https://localhost:44396";
         //public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org";
 
@@ -118,9 +131,10 @@ namespace AGV_TcpIp_ConsoleApp
                     String responseData = String.Empty;
                     //
                     //
-                    #region 309 Temporary Bocked
                     //Errors (ID = 309)
                     // This message is sent periodically from Navithor to MES. Message contains current error status in the system.
+                    #region 309 Temporary Bocked
+                    //
                     //if (iD == 309)
                     //{
                     //    ListobjId309public.Clear();
@@ -332,15 +346,6 @@ namespace AGV_TcpIp_ConsoleApp
                         ele_TaskWarnings.IsBackground = true;
                         ele_TaskWarnings.Start();
                     }
-                    //int d = send_TCP_ID_56.ThreadState.GetHashCode();
-                    ////ThreadState.U
-                    //if (d == 12 || d == 8)
-                    //{
-                    //    send_TCP_ID_56.IsBackground = true;
-                    //    send_TCP_ID_56.Start();
-                    //}
-                    
-
                 }
                 if (client.Connected == false)
                 {
@@ -357,15 +362,38 @@ namespace AGV_TcpIp_ConsoleApp
                 if (TcpStatusConnection)
                 {
                     Thread.Sleep(millisecondsTimeout: SQL_UpdateTime);
-
-
+                    // Jeśli 
+                    if(ListobjId349publicLastUpdated.Count == 0)
+                    {
+                        ListobjId349publicLastUpdated = await ReadAGV_Alarms_v2_pozmda02.Get();
+                    }
                     try
                     {
                         using (HttpClient client = new HttpClient())
                         {
+                            // Do DODANIA
+                            // Te których nie ma na starej liście.
+                            // Metoda ExceptBy - zapewnia pominięcie w porównaniu obiektówpola Id oraz OccurTime
+                            IEnumerable<ID_349> toAdd =ListobjId349public.ExceptBy(ListobjId349publicLastUpdated,x=> new { x.EntityID, x.ErrorId,x.ErrorType,x.Level,x.Name,x.NameStringLength,x.Priority,x.Source,x.Value});
                             //
-                            if (ListobjId349public.Count > 0) { 
-                                HttpResponseMessage response = await client.PostAsJsonAsync($"{HttpSerwerURI}/api/Agv/AGV_AlarmsUpdate_v2/", ListobjId349public);
+                            // Nadanie czasu wystąpienia danego alarmu
+                            toAdd = toAdd.Select(obj => { obj.OccurTime = DateTime.Now; return obj; }).ToList();
+                            // Do USUNIĘCIA
+                            // Te które są na starej liśćie.
+                            // Metoda ExceptBy - zapewnia pominięcie w porównaniu obiektówpola Id oraz OccurTime
+                            IEnumerable<ID_349> toDelete = ListobjId349publicLastUpdated.ExceptBy(ListobjId349public, x => new { x.EntityID, x.ErrorId, x.ErrorType, x.Level, x.Name, x.NameStringLength, x.Priority, x.Source, x.Value });
+                            //
+                            AGV_AlarmsUpdateRequest requestData = new AGV_AlarmsUpdateRequest
+                            {
+                                DataToAdd = toAdd.ToList(),
+                                DataToDelete = toDelete.ToList()
+                            };
+
+                            if (requestData.DataToAdd.Count >0 || requestData.DataToDelete.Count > 0) { 
+                                //
+                                HttpResponseMessage response = await client.PostAsJsonAsync($"{HttpSerwerURI}/api/Agv/AGV_AlarmsUpdate_v2.1.0/", requestData);
+                                //
+                                ListobjId349publicLastUpdated = ListobjId349public;
                                 //
                                 // TESTY BEZ UPDATU MASZYN
                                 //
@@ -427,30 +455,7 @@ namespace AGV_TcpIp_ConsoleApp
                 Thread.Sleep(millisecondsTimeout: 10000);
             }
         }
-        static async void SendTCP_ID_56()
-        {
-            // Adres IP i port docelowy
-            string ipAddress = "10.3.0.43";
-            int port = 8015;
-         
-            //
-            try 
-            {
-                using (TcpClient client = new TcpClient(ipAddress, port))
-                {
-                    NetworkStream stream = client.GetStream();
 
-                    // Wysyłanie ramki do serwera
-                    //stream.Write(sendFrame, 0, 19);
-                    Console.WriteLine("Ramka wysłana.");
-                    stream.Close();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Błąd: " + ex.Message);
-            }
-            Thread.Sleep(millisecondsTimeout: 5000);
-        }
+
     }
 }

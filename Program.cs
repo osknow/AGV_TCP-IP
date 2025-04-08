@@ -66,7 +66,7 @@ namespace AGV_TcpIp_ConsoleApp
             }
             catch(Exception ex)
             {
-                    Console.WriteLine("Reconnect to TCP Server ..."+DateTime.Now);
+                    Console.WriteLine("Reconnect to TCP Server ...");
                     Console.WriteLine(ex.Message);
                     Thread.Sleep(10000);
                     t.Interrupt();
@@ -119,6 +119,7 @@ namespace AGV_TcpIp_ConsoleApp
             //int port = 8015;
             while (true)
             {
+                Console.WriteLine("Łączenie z Serverem TCP/IP z [pozagv02] ...");
                 using TcpClient client = new TcpClient();
                 await client.ConnectAsync(hostAdress, 8015);
                 await using NetworkStream networkStream = client.GetStream();
@@ -319,13 +320,11 @@ namespace AGV_TcpIp_ConsoleApp
                         }
 
                             #endregion
-                            //
-                            //Reconnect
-                            //if (output == 0)
                     }
-                    catch
+                    catch(Exception e)
                     {
-                        Console.WriteLine("Error during reading data - Connection lost ...");
+                        Console.WriteLine("Error during reading data via TCP/IP");
+                        Console.WriteLine(e.Message);
                         networkStream.Close();
                         client.Close();
                         Console.WriteLine("Client TCP/IP disconnected");

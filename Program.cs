@@ -24,7 +24,14 @@ namespace AGV_TcpIp_ConsoleApp
             var secondKeys = new HashSet<TKey>(second.Select(keySelector));
             return first.Where(item => !secondKeys.Contains(keySelector(item)));
         }
+        public static bool Excepts<T, TKey>(T first, IEnumerable<T> second, Func<T, TKey> keySelector)
+        {
+            var secondKeys = new HashSet<TKey>(second.Select(keySelector));
+            return !secondKeys.Contains(keySelector(first));
+        }
+
     }
+
     public class Program
     {
 
@@ -49,9 +56,9 @@ namespace AGV_TcpIp_ConsoleApp
         //
         // TESTY LOKALNE 
         //
-        //public static string HttpSerwerURI { get; set; } = "https://localhost:44396";
+        public static string HttpSerwerURI { get; set; } = "https://localhost:44396";
         //public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org";
-        public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org:82";
+        //public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org:82";
 
         static bool TcpStatusConnection;
         //public NetworkStream networkStream=new NetworkStream();
@@ -62,15 +69,18 @@ namespace AGV_TcpIp_ConsoleApp
 #endif
             try
             {
+                ListobjId310publicLastUpdated = await GetMachinesAGV_pozmda02.Get();
                 await TcpIp();
             }
             catch(Exception ex)
             {
-                    Console.WriteLine("Reconnect to TCP Server ...");
-                    Console.WriteLine(ex.Message);
-                    Thread.Sleep(10000);
-                    t.Interrupt();
-                    await Main();
+                Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
+                Console.WriteLine("Reconnect to TCP Server ...");
+                Console.WriteLine(ex.Message);
+                Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
+                Thread.Sleep(10000);
+                t.Interrupt();
+                await Main();
             }
             //sec.Resume;
             //UpdateDatainSQL();
@@ -119,7 +129,9 @@ namespace AGV_TcpIp_ConsoleApp
             //int port = 8015;
             while (true)
             {
-                Console.WriteLine("Łączenie z Serverem TCP/IP z [pozagv02] ...");
+                //Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
+                //Console.WriteLine("Łączenie z Serverem TCP/IP z [pozagv02] ...");
+                //Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
                 using TcpClient client = new TcpClient();
                 await client.ConnectAsync(hostAdress, 8015);
                 await using NetworkStream networkStream = client.GetStream();
@@ -130,6 +142,7 @@ namespace AGV_TcpIp_ConsoleApp
                     try { 
                         TcpStatusConnection = true;
                         // Console.WriteLine("Live state ....");
+
                         byte[] receiveBuffer = new byte[1024];
                         int readTotal;
                         //
@@ -137,6 +150,17 @@ namespace AGV_TcpIp_ConsoleApp
                         //
                         var output = networkStream.Read(receiveBuffer, 0, receiveBuffer.Length);
                         int iD = System.BitConverter.ToInt16(receiveBuffer, 0);
+                        //
+                        if(iD==310 || iD == 349)
+                        {
+                            int dataLengthTEMP = System.BitConverter.ToInt16(receiveBuffer, 7);
+                            if (dataLengthTEMP > 1000)
+                            {
+                                Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
+                                Console.WriteLine("Długośc danych do odczytania to : "+ dataLengthTEMP);
+                                Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
+                            }
+                        }
                         String responseData = String.Empty;
                         //
                         //
@@ -191,16 +215,14 @@ namespace AGV_TcpIp_ConsoleApp
                         #region 310 
                         if (iD == 310)
                         {
-
-
                             DateTime czas = DateTime.Now;
                             //Console.WriteLine("ID = 310 | czas: " + czas);
                             int begine = 9;
                             int begine_swap = begine;
                             ListobjId310public.Clear();
                             //99 Max Length of data Frame for this comand from documentation
-                            while (99 > begine_swap)
-                            {
+                            //while (99 > begine_swap)
+                            //{
                                 objId310.MachineID = System.BitConverter.ToUInt16(receiveBuffer, begine_swap);
                                 begine_swap += 2;
                                 objId310.X = System.BitConverter.ToDouble(receiveBuffer, begine_swap);
@@ -266,7 +288,7 @@ namespace AGV_TcpIp_ConsoleApp
                                 {
                                     objId310.MachineName = "A-Mate 3";
                                 }
-                            }
+                            //}
                             ListobjId310public.Add(objId310);
                         }
                         #endregion
@@ -323,11 +345,13 @@ namespace AGV_TcpIp_ConsoleApp
                     }
                     catch(Exception e)
                     {
-                        Console.WriteLine("Error during reading data via TCP/IP");
+                        Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
+                        Console.WriteLine("Error during reading/writing data via TCP/IP");
                         Console.WriteLine(e.Message);
                         networkStream.Close();
                         client.Close();
                         Console.WriteLine("Client TCP/IP disconnected");
+                        Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
                         TcpStatusConnection = false;
                     }
 
@@ -439,12 +463,75 @@ namespace AGV_TcpIp_ConsoleApp
                             if (ListobjId310public.Count > 0)
                             {
                                 //__________________________________________________________
-                                // REFACTORING - Opracować brak update dla tych samych danych w kułko
+                                // REFACTORING - Opracować brak update dla tych samych danych w kółko
                                 //__________________________________________________________
                                 //
-                                if (ListobjId310public.Any())
+                                if(ListobjId310publicLastUpdated[1].MachineName == "A-Mate2")
+                                {
+                                    ListobjId310publicLastUpdated[1].MachineName = "A-Mate 2";
+                                }
+                                ID_310 object310LastUpdated = ListobjId310publicLastUpdated.FirstOrDefault(s => s.MachineName == ListobjId310public[0].MachineName);
+                                //
+                                //
+                                // Porównanie obiektów i sprawdzenie czy są rówżnice w obiekcie który przyszedł względem obiektu który
+                                // przechowuje ostatnio zaktualizowane maszyny AGV.
+                                //
+                                bool toUpdate = Extensions.Excepts(ListobjId310public[0] , ListobjId310publicLastUpdated, x => new { 
+                                    x.MachineName,x.X,x.Y,x.H,x.Poziom,x.PositionConfidence, 
+                                    x.SpeedNavigationPoint, x.State, x.BatteryLeve, x.AutoOrManual, 
+                                    x.PositionInitialized, x.LastSymbolPoint, x.MachineAtLastSymbolPoint, 
+                                    x.TargetSymbolPoint, x.MachineAtTarget, x.Operational, x.InProduction, 
+                                    x.LoadStatus, x.BatteryVoltage, x.ChargingStatus, x.DistanceToTarget, 
+                                    x.CurrentDriveThroughPoint, x.NextLeveChangePointId, x.DistanceToNextLeveelChange, 
+                                    x.LastSymbolPointDrivenOver
+                                });
+                                // false gdy jest zgodnosc obiektów    - NIE UAKTUALNIAMY DANYCH 
+                                // true  gdy jest niezgodnosc obiektów - UAKTUALNIAMY DANE
+                                if (toUpdate)
                                 {
                                     response310 = await client.PostAsJsonAsync($"{HttpSerwerURI}/api/Agv/AGV_MachinesStatusUpdate/", ListobjId310public);
+                                    //
+                                    // Aktualizacja obiektu w liście MASZYN AGV który przychodzi do aktualizacji.
+                                    //
+                                    #region Updated data in List model ID_310
+                                    ListobjId310publicLastUpdated = ListobjId310publicLastUpdated.Select(obj =>
+                                        {
+                                            if (obj.MachineName == ListobjId310public[0].MachineName)
+                                            {
+                                                obj.MachineID = ListobjId310public[0].MachineID;
+                                                obj.MachineName = ListobjId310public[0].MachineName;
+                                                obj.X = ListobjId310public[0].X;
+                                                obj.Y = ListobjId310public[0].Y;
+                                                obj.H = ListobjId310public[0].H;
+                                                obj.Poziom = ListobjId310public[0].Poziom;
+                                                obj.PositionConfidence = ListobjId310public[0].PositionConfidence;
+                                                obj.SpeedNavigationPoint = ListobjId310public[0].SpeedNavigationPoint;
+                                                obj.State = ListobjId310public[0].State;
+                                                obj.BatteryLeve = ListobjId310public[0].BatteryLeve;
+                                                obj.AutoOrManual = ListobjId310public[0].AutoOrManual;
+                                                obj.PositionInitialized = ListobjId310public[0].PositionInitialized;
+                                                obj.LastSymbolPoint = ListobjId310public[0].LastSymbolPoint;
+                                                obj.MachineAtLastSymbolPoint = ListobjId310public[0].MachineAtLastSymbolPoint;
+                                                obj.TargetSymbolPoint = ListobjId310public[0].TargetSymbolPoint;
+                                                obj.MachineAtTarget = ListobjId310public[0].MachineAtTarget;
+                                                obj.Operational = ListobjId310public[0].Operational;
+                                                obj.InProduction = ListobjId310public[0].InProduction;
+                                                obj.LoadStatus = ListobjId310public[0].LoadStatus;
+                                                obj.BatteryVoltage = ListobjId310public[0].BatteryVoltage;
+                                                obj.ChargingStatus = ListobjId310public[0].ChargingStatus;
+                                                obj.DistanceToTarget = ListobjId310public[0].DistanceToTarget;
+                                                obj.CurrentDriveThroughPoint = ListobjId310public[0].CurrentDriveThroughPoint;
+                                                obj.NextLeveChangePointId = ListobjId310public[0].NextLeveChangePointId;
+                                                obj.DistanceToNextLeveelChange = ListobjId310public[0].DistanceToNextLeveelChange;
+                                                obj.LastSymbolPointDrivenOver = ListobjId310public[0].LastSymbolPointDrivenOver;
+                                                obj.UpdateTime = ListobjId310public[0].UpdateTime;
+                                            }
+                                            return obj;
+                                        }).ToList();
+
+                                    #endregion
+
+                                    //
                                     StringBuilder machineListString = new StringBuilder();
                                     foreach (var machine in ListobjId310public)
                                         {
@@ -462,7 +549,7 @@ namespace AGV_TcpIp_ConsoleApp
                             {
                                 ListobjId310public.Clear();
                                 DateTime czas = DateTime.Now;
-                                Console.WriteLine("Work work work ...");
+                                //Console.WriteLine("Work work work ...");
                             }
                             else
                             {
@@ -478,7 +565,9 @@ namespace AGV_TcpIp_ConsoleApp
                         // Usunięcie listy ostatnio aktuaizowanych danych by przy odzyskaniu połączenia pobrać dane z bazy danych na nowo.
                         ListobjId349publicLastUpdated.Clear();
                         //
+                        Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
                         Console.WriteLine("Error Occurred  in sending alarm list: " + e); ;
+                        Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
                     }
 
                 }

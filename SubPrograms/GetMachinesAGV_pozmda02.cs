@@ -11,15 +11,15 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
 {
     class GetMachinesAGV_pozmda02
     {
-        public static async Task<List<AGV_Machine>> Get()
+        public static async Task<List<ID_310>> Get()
         {
-            List < AGV_Machine> empty = new List<AGV_Machine>();
-            string HttpSerwerURI = "https://pozmda02.duni.org/api/Agv/AGV_Machines";
+            List <ID_310> empty = new List<ID_310>();
+            string HttpSerwerURI = "https://pozmda02.duni.org:82/api/Agv/AGV_Machines";
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    return  await client.GetFromJsonAsync<List<AGV_Machine>>(HttpSerwerURI);
+                    return  await client.GetFromJsonAsync<List<ID_310>>(HttpSerwerURI);
 
                      
                 }

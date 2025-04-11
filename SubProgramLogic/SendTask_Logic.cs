@@ -32,7 +32,8 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
                 DateTime nowtime = DateTime.Now;
                 using (HttpClient client = new HttpClient())
                 {
-                    List<AGV_Machine> listMachineAGV = await GetMachinesAGV_pozmda02.Get();
+                    //List<AGV_Machine> listMachineAGV = await GetMachinesAGV_pozmda02.Get();
+                    List<AGV_Machine> listMachineAGV = new List<AGV_Machine>();
                     //
                     List<ReadTask_pozmda02_body> tasksPozmda02 = await ReadTask_pozmda02.Get();
                     //
@@ -154,9 +155,10 @@ namespace AGV_TcpIp_ConsoleApp.SubProgramLogic
             if (agvMachineAlarmsList.Count > 0)
             {
                 //
-                List<AGV_Machine> listMachineAGV = await GetMachinesAGV_pozmda02.Get();
+                //List<AGV_Machine> listMachineAGV = await GetMachinesAGV_pozmda02.Get();
+                List<AGV_Machine> listMachineAGV = new List<AGV_Machine>();
                 //
-                List<ReadTask_pozmda02_body> tasksPozmda02 = await ReadTask_pozmda02.Get();
+                List <ReadTask_pozmda02_body> tasksPozmda02 = await ReadTask_pozmda02.Get();
                 //
                 bool agv_1_obstacleActive = false;
                 bool agv_2_obstacleActive = false;

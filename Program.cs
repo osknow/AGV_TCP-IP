@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -8,6 +9,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AGV_TcpIp_ConsoleApp.Mapper;
 using AGV_TcpIp_ConsoleApp.Model;
 using AGV_TcpIp_ConsoleApp.SubProgramLogic;
 using AGV_TcpIp_ConsoleApp.SubPrograms;
@@ -56,9 +58,9 @@ namespace AGV_TcpIp_ConsoleApp
         //
         // TESTY LOKALNE 
         //
-        public static string HttpSerwerURI { get; set; } = "https://localhost:44396";
+        //public static string HttpSerwerURI { get; set; } = "https://localhost:44396";
         //public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org";
-        //public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org:82";
+        public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org:82";
 
         static bool TcpStatusConnection;
         //public NetworkStream networkStream=new NetworkStream();
@@ -129,9 +131,9 @@ namespace AGV_TcpIp_ConsoleApp
             //int port = 8015;
             while (true)
             {
-                //Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
-                //Console.WriteLine("Łączenie z Serverem TCP/IP z [pozagv02] ...");
-                //Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
+                Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
+                Console.WriteLine("Łączenie z Serverem TCP/IP z [pozagv02] ...");
+                Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
                 using TcpClient client = new TcpClient();
                 await client.ConnectAsync(hostAdress, 8015);
                 await using NetworkStream networkStream = client.GetStream();
@@ -154,11 +156,14 @@ namespace AGV_TcpIp_ConsoleApp
                         if(iD==310 || iD == 349)
                         {
                             int dataLengthTEMP = System.BitConverter.ToInt16(receiveBuffer, 7);
-                            if (dataLengthTEMP > 1000)
+                            if (dataLengthTEMP > 1024)
                             {
                                 Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
                                 Console.WriteLine("Długośc danych do odczytania to : "+ dataLengthTEMP);
                                 Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
+                                Thread.Sleep(1000);
+                                continue;
+
                             }
                         }
                         String responseData = String.Empty;
@@ -343,25 +348,42 @@ namespace AGV_TcpIp_ConsoleApp
 
                             #endregion
                     }
-                    catch(Exception e)
+                    //catch(Exception e)
+                    //{
+                    //    Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
+                    //    Console.WriteLine("Error during reading/writing data via TCP/IP");
+                    //    Console.WriteLine(e.Message);
+                    //    Console.WriteLine(e.StackTrace);
+                    //    Console.WriteLine(e.Source);
+                    //    Console.WriteLine(e.TargetSite);
+                    //    networkStream.Close();
+                    //    client.Close();
+                    //    Console.WriteLine("Client TCP/IP disconnected");
+                    //    Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
+                    //    TcpStatusConnection = false;
+                    //}
+
+                     catch (SocketException ex)
                     {
-                        Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
-                        Console.WriteLine("Error during reading/writing data via TCP/IP");
-                        Console.WriteLine(e.Message);
-                        networkStream.Close();
-                        client.Close();
-                        Console.WriteLine("Client TCP/IP disconnected");
-                        Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
-                        TcpStatusConnection = false;
+                        Console.WriteLine($"Error SocketException: {ex.Message}");
+                    }
+                    catch (IOException ex)
+                    {
+                        Console.WriteLine($"Error IOException: {ex.Message}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error Exception: {ex.Message}");
                     }
 
-                    //_______________________________________________
-                    //
-                    //THREADs
-                    //
-                    //_______________________________________________
 
-                    int a = t.ThreadState.GetHashCode();
+                //_______________________________________________
+                //
+                //THREADs
+                //
+                //_______________________________________________
+
+                int a = t.ThreadState.GetHashCode();
                     //ThreadState.U
                     if (a == 12 || a == 8)
                     {
@@ -434,15 +456,10 @@ namespace AGV_TcpIp_ConsoleApp
                                 DataToAdd = toAdd.ToList(),
                                 DataToDelete = toDelete.ToList()
                             };
-
+                            response310 = new HttpResponseMessage(HttpStatusCode.OK);
+                            response349 = new HttpResponseMessage(HttpStatusCode.OK);
                             if (requestData.DataToAdd.Count > 0 || requestData.DataToDelete.Count > 0)
                             {
-                                //
-                                //if (!localData.SequenceEqual(previousData))
-                                //{
-
-                                //    previousData = new List<ID_349>(localData);
-
                                 ListobjId349publicLastUpdated.AddRange(toAdd);
                                 ListobjId349publicLastUpdated.RemoveAll(item => toDelete.Any(toDel =>
                                     toDel.EntityID == item.EntityID &&
@@ -454,18 +471,15 @@ namespace AGV_TcpIp_ConsoleApp
                                     toDel.Priority == item.Priority &&
                                     toDel.Source == item.Source &&
                                     toDel.Value == item.Value));
-
+                                response349 = new HttpResponseMessage(HttpStatusCode.BadRequest);
                                 response349 = await client.PostAsJsonAsync($"{HttpSerwerURI}/api/Agv/AGV_AlarmsUpdate_v2.1.0/", requestData);
                                 Console.WriteLine("Send update with Alarms  Data on: " + DateTime.Now);
-                                //
                             }
                             #endregion
+
+                            #region Update MACHINES AGV
                             if (ListobjId310public.Count > 0)
                             {
-                                //__________________________________________________________
-                                // REFACTORING - Opracować brak update dla tych samych danych w kółko
-                                //__________________________________________________________
-                                //
                                 if(ListobjId310publicLastUpdated[1].MachineName == "A-Mate2")
                                 {
                                     ListobjId310publicLastUpdated[1].MachineName = "A-Mate 2";
@@ -489,48 +503,21 @@ namespace AGV_TcpIp_ConsoleApp
                                 // true  gdy jest niezgodnosc obiektów - UAKTUALNIAMY DANE
                                 if (toUpdate)
                                 {
+                                    response310 = new HttpResponseMessage(HttpStatusCode.BadRequest);
                                     response310 = await client.PostAsJsonAsync($"{HttpSerwerURI}/api/Agv/AGV_MachinesStatusUpdate/", ListobjId310public);
                                     //
                                     // Aktualizacja obiektu w liście MASZYN AGV który przychodzi do aktualizacji.
                                     //
                                     #region Updated data in List model ID_310
                                     ListobjId310publicLastUpdated = ListobjId310publicLastUpdated.Select(obj =>
-                                        {
+                                        { 
                                             if (obj.MachineName == ListobjId310public[0].MachineName)
-                                            {
-                                                obj.MachineID = ListobjId310public[0].MachineID;
-                                                obj.MachineName = ListobjId310public[0].MachineName;
-                                                obj.X = ListobjId310public[0].X;
-                                                obj.Y = ListobjId310public[0].Y;
-                                                obj.H = ListobjId310public[0].H;
-                                                obj.Poziom = ListobjId310public[0].Poziom;
-                                                obj.PositionConfidence = ListobjId310public[0].PositionConfidence;
-                                                obj.SpeedNavigationPoint = ListobjId310public[0].SpeedNavigationPoint;
-                                                obj.State = ListobjId310public[0].State;
-                                                obj.BatteryLeve = ListobjId310public[0].BatteryLeve;
-                                                obj.AutoOrManual = ListobjId310public[0].AutoOrManual;
-                                                obj.PositionInitialized = ListobjId310public[0].PositionInitialized;
-                                                obj.LastSymbolPoint = ListobjId310public[0].LastSymbolPoint;
-                                                obj.MachineAtLastSymbolPoint = ListobjId310public[0].MachineAtLastSymbolPoint;
-                                                obj.TargetSymbolPoint = ListobjId310public[0].TargetSymbolPoint;
-                                                obj.MachineAtTarget = ListobjId310public[0].MachineAtTarget;
-                                                obj.Operational = ListobjId310public[0].Operational;
-                                                obj.InProduction = ListobjId310public[0].InProduction;
-                                                obj.LoadStatus = ListobjId310public[0].LoadStatus;
-                                                obj.BatteryVoltage = ListobjId310public[0].BatteryVoltage;
-                                                obj.ChargingStatus = ListobjId310public[0].ChargingStatus;
-                                                obj.DistanceToTarget = ListobjId310public[0].DistanceToTarget;
-                                                obj.CurrentDriveThroughPoint = ListobjId310public[0].CurrentDriveThroughPoint;
-                                                obj.NextLeveChangePointId = ListobjId310public[0].NextLeveChangePointId;
-                                                obj.DistanceToNextLeveelChange = ListobjId310public[0].DistanceToNextLeveelChange;
-                                                obj.LastSymbolPointDrivenOver = ListobjId310public[0].LastSymbolPointDrivenOver;
-                                                obj.UpdateTime = ListobjId310public[0].UpdateTime;
+                                            { 
+                                               obj = Mappers.dataID_310_toDto(ListobjId310public[0]);
                                             }
                                             return obj;
                                         }).ToList();
-
                                     #endregion
-
                                     //
                                     StringBuilder machineListString = new StringBuilder();
                                     foreach (var machine in ListobjId310public)
@@ -542,9 +529,18 @@ namespace AGV_TcpIp_ConsoleApp
                                         machineListString.Append(machine.MachineName);
                                         }
                                     Console.WriteLine("Send update with MACHINE for " + ListobjId310public.Count + " machines. Main for :" + machineListString + ". Data : " + DateTime.Now);
-
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Dane nie wysłane z uwagi na tę samą zawartość");
                                 }
                             }
+                            else
+                            {
+                                Console.WriteLine("Brak danych do wysłania Count = 0 ");
+                            }
+
+                            #endregion
                             if (response310.IsSuccessStatusCode && response349.IsSuccessStatusCode)
                             {
                                 ListobjId310public.Clear();

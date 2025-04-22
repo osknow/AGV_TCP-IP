@@ -156,6 +156,8 @@ namespace AGV_TcpIp_ConsoleApp
                         if(iD==310 || iD == 349)
                         {
                             int dataLengthTEMP = System.BitConverter.ToInt16(receiveBuffer, 7);
+                            int senderID = System.BitConverter.ToInt16(receiveBuffer, 2);
+                            int receiverID = System.BitConverter.ToInt16(receiveBuffer, 4);
                             if (dataLengthTEMP > 1024)
                             {
                                 Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
@@ -163,12 +165,10 @@ namespace AGV_TcpIp_ConsoleApp
                                 Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
                                 Thread.Sleep(1000);
                                 continue;
-
                             }
+                            //Console.WriteLine("Id Sender " + senderID + " Id receiver " + receiverID);
+                            // Id Sender 1000 Id receiver 1001 
                         }
-                        String responseData = String.Empty;
-                        //
-                        //
                         //Errors (ID = 309)
                         // This message is sent periodically from Navithor to MES. Message contains current error status in the system.
                         #region 309 Temporary Bocked
@@ -363,17 +363,21 @@ namespace AGV_TcpIp_ConsoleApp
                     //    TcpStatusConnection = false;
                     //}
 
-                     catch (SocketException ex)
+                    catch (SocketException ex)
                     {
-                        Console.WriteLine($"Error SocketException: {ex.Message}");
+                        Console.WriteLine($"Error SocketException ; {ex.Message}");
                     }
                     catch (IOException ex)
                     {
-                        Console.WriteLine($"Error IOException: {ex.Message}");
+                        Console.WriteLine($"Error IOException ; {ex.Message}");
+                        Console.WriteLine($"Error IOException ; {ex.Source}");
+                        Console.WriteLine($"Error IOException ; {ex.TargetSite}");
+                        Console.WriteLine($"Error IOException ; {ex.StackTrace}");
+                        Console.WriteLine($"Error IOException ; {ex.InnerException}");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error Exception: {ex.Message}");
+                        Console.WriteLine($"Error Exception ; {ex.Message}");
                     }
 
 
@@ -473,7 +477,7 @@ namespace AGV_TcpIp_ConsoleApp
                                     toDel.Value == item.Value));
                                 response349 = new HttpResponseMessage(HttpStatusCode.BadRequest);
                                 response349 = await client.PostAsJsonAsync($"{HttpSerwerURI}/api/Agv/AGV_AlarmsUpdate_v2.1.0/", requestData);
-                                Console.WriteLine("Send update with Alarms  Data on: " + DateTime.Now);
+                                Console.WriteLine("Send update with Alarms");
                             }
                             #endregion
 
@@ -528,7 +532,7 @@ namespace AGV_TcpIp_ConsoleApp
                                         }
                                         machineListString.Append(machine.MachineName);
                                         }
-                                    Console.WriteLine("Send update with MACHINE for " + ListobjId310public.Count + " machines. Main for :" + machineListString + ". Data : " + DateTime.Now);
+                                    Console.WriteLine("Send update with MACHINE for " + ListobjId310public.Count + " machines. Main for :" + machineListString);
                                 }
                                 else
                                 {

@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\arkurb\\source\\repos\\AGV\\AGV_TCP-IP\\AGV_TcpIp_ConsoleApp.csproj": {}
+    "C:\\Users\\osknowpa\\AGV_TCP-IP\\AGV_TcpIp_ConsoleApp.csproj": {}
   },
   "projects": {
-    "C:\\Users\\arkurb\\source\\repos\\AGV\\AGV_TCP-IP\\AGV_TcpIp_ConsoleApp.csproj": {
+    "C:\\Users\\osknowpa\\AGV_TCP-IP\\AGV_TcpIp_ConsoleApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\arkurb\\source\\repos\\AGV\\AGV_TCP-IP\\AGV_TcpIp_ConsoleApp.csproj",
+        "projectUniqueName": "C:\\Users\\osknowpa\\AGV_TCP-IP\\AGV_TcpIp_ConsoleApp.csproj",
         "projectName": "AGV_TcpIp_ConsoleApp",
-        "projectPath": "C:\\Users\\arkurb\\source\\repos\\AGV\\AGV_TCP-IP\\AGV_TcpIp_ConsoleApp.csproj",
-        "packagesPath": "C:\\Users\\arkurb\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\arkurb\\source\\repos\\AGV\\AGV_TCP-IP\\obj\\",
+        "projectPath": "C:\\Users\\osknowpa\\AGV_TCP-IP\\AGV_TcpIp_ConsoleApp.csproj",
+        "packagesPath": "C:\\Users\\osknow\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\osknowpa\\AGV_TCP-IP\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\arkurb\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\osknow\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -54,7 +54,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.408\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.416\\RuntimeIdentifierGraph.json"
         }
       }
     }

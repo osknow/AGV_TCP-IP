@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AGV_TcpIp_ConsoleApp.Mapper;
 using AGV_TcpIp_ConsoleApp.Model;
-using AGV_TcpIp_ConsoleApp.SubProgramLogic;
 using AGV_TcpIp_ConsoleApp.SubPrograms;
 
 
@@ -53,8 +52,6 @@ namespace AGV_TcpIp_ConsoleApp
         static ID_349 objId349 = new ID_349();
         //
         static Thread t = new Thread(new ThreadStart(UpdateDatainSQL));
-        public static Thread ele_TaskAlarms = new Thread(new ThreadStart(TaskEleAlarms));
-        static Thread ele_TaskWarnings = new Thread(new ThreadStart(  TaskEleWarnings));
         //
         // TESTY LOKALNE 
         //
@@ -348,21 +345,6 @@ namespace AGV_TcpIp_ConsoleApp
 
                             #endregion
                     }
-                    //catch(Exception e)
-                    //{
-                    //    Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
-                    //    Console.WriteLine("Error during reading/writing data via TCP/IP");
-                    //    Console.WriteLine(e.Message);
-                    //    Console.WriteLine(e.StackTrace);
-                    //    Console.WriteLine(e.Source);
-                    //    Console.WriteLine(e.TargetSite);
-                    //    networkStream.Close();
-                    //    client.Close();
-                    //    Console.WriteLine("Client TCP/IP disconnected");
-                    //    Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
-                    //    TcpStatusConnection = false;
-                    //}
-
                     catch (SocketException ex)
                     {
                         Console.WriteLine($"Error SocketException ; {ex.Message}");
@@ -379,8 +361,6 @@ namespace AGV_TcpIp_ConsoleApp
                     {
                         Console.WriteLine($"Error Exception ; {ex.Message}");
                     }
-
-
                 //_______________________________________________
                 //
                 //THREADs
@@ -394,25 +374,10 @@ namespace AGV_TcpIp_ConsoleApp
                         t.IsBackground = true;
                         t.Start();
                     }
-                    int b = ele_TaskAlarms.ThreadState.GetHashCode();
-                    //ThreadState.U
-                    if (b == 12 || b == 8)
-                    {
-                        ele_TaskAlarms.IsBackground = true;
-                        ele_TaskAlarms.Start();
-                    }
-                    int c = ele_TaskWarnings.ThreadState.GetHashCode();
-                    //ThreadState.U
-                    if (c == 12 || c == 8)
-                    {
-                        ele_TaskWarnings.IsBackground = true;
-                        ele_TaskWarnings.Start();
-                    }
                 }
                 if (client.Connected == false)
                 {
                  Thread.Sleep(7000);
-
                 }
             }
         }
@@ -573,34 +538,5 @@ namespace AGV_TcpIp_ConsoleApp
                 }
             }
         }
-
-        //________________________________________________________________________________________________________________________________________________________________________
-
-        //
-        // ZABLOKOWANIE WSYŁĄNIA ZADAŃ !!! - TESTY nowej ramki danych z alarmami.
-        //
-        static async void TaskEleAlarms()
-        {
-            while (false)
-            {
-                // Zadania Awari na tablet elektryka
-                SendTask_Logic.RecognizeAlarm(ListobjId310public);
-                //
-                Thread.Sleep(millisecondsTimeout: 10000);
-            }
-        }
-        static async void TaskEleWarnings()
-        {
-            while (false)
-            {
-                // Zadanie o przeszkodzie na drodze na tablet elektryka
-                // ZADANIA NIE MOGĄ BYĆ ASYNCHRONICZNE !!!!
-                SendTask_Logic.RecognizeWarning(ListobjId309public);
-                //
-                Thread.Sleep(millisecondsTimeout: 10000);
-            }
-        }
-
-
     }
 }

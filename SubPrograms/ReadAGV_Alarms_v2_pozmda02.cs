@@ -17,7 +17,7 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
                 List<ID_349> empty = new List<ID_349>();
                 try
                 {
-                    string url = "https://pozmda02.duni.org:82/api/Agv/AGV_Alarms_v2";
+                    string url = "https://pozmda02.duni.org/api/Agv/AGV_Alarms_v2";
                     return await client.GetFromJsonAsync<List<ID_349>>(url);
 
                 }

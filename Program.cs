@@ -56,15 +56,15 @@ namespace AGV_TcpIp_ConsoleApp
         // TESTY LOKALNE 
         //
         //public static string HttpSerwerURI { get; set; } = "https://localhost:44396";
-        //public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org";
-        public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org:82";
+        public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org";
+        //public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org:82";
 
         static bool TcpStatusConnection;
         //public NetworkStream networkStream=new NetworkStream();
         static   async Task Main()
         {
 #if !DEBUG
-            Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2_0\\logs"));
+            Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\logs"));
 #endif
             try
             {
@@ -77,7 +77,7 @@ namespace AGV_TcpIp_ConsoleApp
                 Console.WriteLine("Reconnect to TCP Server ...");
                 Console.WriteLine(ex.Message);
                 Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
-                Thread.Sleep(10000);
+                Thread.Sleep(5000);
                 t.Interrupt();
                 await Main();
             }
@@ -93,8 +93,8 @@ namespace AGV_TcpIp_ConsoleApp
             #region sendBuffer
             // Nagłówek
             byte id = 56;
-            ushort senderId = 1002;
-            ushort receiverId = 1000;
+            ushort senderId = 1005;
+            ushort receiverId = 1001;
             byte messageType = 2;
             byte dataLength = 10;
 
@@ -126,8 +126,12 @@ namespace AGV_TcpIp_ConsoleApp
 
             IPAddress hostAdress = IPAddress.Parse("10.3.0.43");
             //int port = 8015;
-            while (true)
+            DateTime startTime = DateTime.Now;
+            Console.WriteLine(startTime);
+            //Task uruchaminay co 5 min więć while trwa max 4min50sec = 290sec
+            while (DateTime.Now < startTime.AddSeconds(290))
             {
+                
                 Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
                 Console.WriteLine("Łączenie z Serverem TCP/IP z [pozagv02] ...");
                 Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
@@ -138,6 +142,7 @@ namespace AGV_TcpIp_ConsoleApp
 
                 while (client.Connected)
                 {
+
                     try { 
                         TcpStatusConnection = true;
                         // Console.WriteLine("Live state ....");
@@ -345,21 +350,18 @@ namespace AGV_TcpIp_ConsoleApp
 
                             #endregion
                     }
-                    catch (SocketException ex)
-                    {
-                        Console.WriteLine($"Error SocketException ; {ex.Message}");
-                    }
-                    catch (IOException ex)
-                    {
-                        Console.WriteLine($"Error IOException ; {ex.Message}");
-                        Console.WriteLine($"Error IOException ; {ex.Source}");
-                        Console.WriteLine($"Error IOException ; {ex.TargetSite}");
-                        Console.WriteLine($"Error IOException ; {ex.StackTrace}");
-                        Console.WriteLine($"Error IOException ; {ex.InnerException}");
-                    }
+                    //catch (SocketException ex)
+                    //{
+                    //    Console.WriteLine($"Error SocketException ; {ex.Message}");
+                    //}
+                    //catch (IOException ex)
+                    //{
+                    //    //Console.WriteLine($"Error IOException ; {ex.Message}");
+                    //    Console.WriteLine($"Error IOException ; {ex.InnerException}");
+                    //}
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error Exception ; {ex.Message}");
+                        Console.WriteLine($"Error Exception ; {ex}");
                     }
                 //_______________________________________________
                 //
@@ -387,6 +389,7 @@ namespace AGV_TcpIp_ConsoleApp
             //List<ID_349> previousData = new List<ID_349>();
             while (true)
             {
+                Console.WriteLine(DateTime.Now);
                 if (TcpStatusConnection)
                 {
                     List<ID_310> newListLast = ListobjId310publicLastUpdated;
@@ -449,7 +452,7 @@ namespace AGV_TcpIp_ConsoleApp
                             #region Update MACHINES AGV
                             if (ListobjId310public.Count > 0)
                             {
-                                if(ListobjId310publicLastUpdated[1].MachineName == "A-Mate2")
+                                if(ListobjId310public.Count > 1 && ListobjId310publicLastUpdated[1].MachineName == "A-Mate2")
                                 {
                                     ListobjId310publicLastUpdated[1].MachineName = "A-Mate 2";
                                 }

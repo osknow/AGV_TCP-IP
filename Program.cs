@@ -94,7 +94,7 @@ namespace AGV_TcpIp_ConsoleApp
             // Nagłówek
             byte id = 56;
             ushort senderId = 1005;
-            ushort receiverId = 1001;
+            ushort receiverId = 1000;
             byte messageType = 2;
             byte dataLength = 10;
 
@@ -106,7 +106,7 @@ namespace AGV_TcpIp_ConsoleApp
 
 
             // Utworzenie tablicy bajtów zawierającej ramkę
-            byte[] sendFrame = new byte[19];
+            Byte[] sendFrame = new byte[19];
 
             // Wypełnienie ramki
             BitConverter.GetBytes(id).CopyTo(sendFrame, 0);          // 2 bajty
@@ -147,7 +147,7 @@ namespace AGV_TcpIp_ConsoleApp
                         TcpStatusConnection = true;
                         // Console.WriteLine("Live state ....");
 
-                        byte[] receiveBuffer = new byte[1024];
+                        Byte[] receiveBuffer = new byte[1024];
                         int readTotal;
                         //
                         networkStream.Write(sendFrame, 0, 19);

@@ -54,10 +54,11 @@ namespace AGV_TcpIp_ConsoleApp
             int port = 8015;
 
             IPAddress hostAdress = IPAddress.Parse("10.3.0.43");
+            using TcpClient client = new TcpClient();
             //int port = 8015;
             while (true)
             {
-                using TcpClient client = new TcpClient();
+
                 await client.ConnectAsync(hostAdress, 8015);
                 await using NetworkStream networkStream = client.GetStream();
                 DateTime start = DateTime.Now;

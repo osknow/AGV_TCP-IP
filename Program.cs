@@ -142,11 +142,12 @@ namespace AGV_TcpIp_ConsoleApp
 
                 while (client.Connected)
                 {
-
                     try { 
                         TcpStatusConnection = true;
-                        // Console.WriteLine("Live state ....");
-
+                        // Sleep z powodu zbyt częstego odpytywania serwera ponoć. Twierdzenie ELOKONu. 
+                        // Navitec zapisuje logi do pliku gdzie po prostu logują nasze zapytania o ramkę  56 która przychodzi często chcąc mieć najrzetelniejsze dane.
+                        Thread.Sleep(200);
+                        //
                         Byte[] receiveBuffer = new byte[1024];
                         int readTotal;
                         //

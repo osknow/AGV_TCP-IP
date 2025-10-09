@@ -45,3 +45,4 @@ C:\Users\osknowpa\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.dll
 C:\Users\osknowpa\AGV_TCP-IP\obj\Debug\net5.0\ref\AGV_TcpIp_ConsoleApp.dll
 C:\Users\osknowpa\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.pdb
 C:\Users\osknowpa\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.genruntimeconfig.cache
+C:\Users\osknowpa\AGV_TCP-IP\obj\Debug\net5.0\AGV_TcpIp_ConsoleApp.csproj.AssemblyReference.cache

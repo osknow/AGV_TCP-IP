@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -51,7 +52,8 @@ namespace AGV_TcpIp_ConsoleApp
         static ID_310 objId310 = new ID_310();
         static ID_349 objId349 = new ID_349();
         //
-        static Thread t = new Thread(new ThreadStart(UpdateDatainSQL));
+        //static Thread t = new Thread(new ThreadStart(UpdateDatainSQL));
+        static Thread t = new Thread(new ThreadStart(TEMP_Empty));
         static Thread ElokonTask = new Thread(new ThreadStart(WriteDataToTXT));
         //
         // TESTY LOKALNE 
@@ -66,7 +68,10 @@ namespace AGV_TcpIp_ConsoleApp
         {
 #if !DEBUG
             Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\logs"));
+#else
+            Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\logs"));
 #endif
+
             try
             {
                 ListobjId310publicLastUpdated = await GetMachinesAGV_pozmda02.Get();
@@ -130,7 +135,7 @@ namespace AGV_TcpIp_ConsoleApp
             DateTime startTime = DateTime.Now;
             Console.WriteLine(startTime);
             //Task uruchaminay co 5 min więć while trwa max 4min50sec = 290sec
-            while (DateTime.Now < startTime.AddSeconds(290))
+            while (DateTime.Now < startTime.AddSeconds(2900))
             {
                 
                 Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
@@ -140,9 +145,11 @@ namespace AGV_TcpIp_ConsoleApp
                 await client.ConnectAsync(hostAdress, 8015);
                 await using NetworkStream networkStream = client.GetStream();
                 DateTime start = DateTime.Now;
-
+                //
+                byte[] headerBuffer = new byte[9];
                 while (client.Connected)
                 {
+
                     try { 
                         TcpStatusConnection = true;
                         // Sleep z powodu zbyt częstego odpytywania serwera ponoć. Twierdzenie ELOKONu. 
@@ -151,95 +158,102 @@ namespace AGV_TcpIp_ConsoleApp
                         //
                         Byte[] receiveBuffer = new byte[1024];
                         int readTotal;
-                        //
+                        // Request po Errors_v2
                         networkStream.Write(sendFrame, 0, 19);
                         //
-                        var output = await networkStream.ReadAsync(receiveBuffer, 0, receiveBuffer.Length);
-                        int iD = System.BitConverter.ToInt16(receiveBuffer, 0);
-                        //
-                        if(iD==310 || iD == 349)
+
+                        // Odczytaj nagłówek
+                        int read = await networkStream.ReadAsync(headerBuffer, 0, headerBuffer.Length);
+                        if (read < headerBuffer.Length)
                         {
-                            int dataLengthTEMP = System.BitConverter.ToInt16(receiveBuffer, 7);
-                            int senderID = System.BitConverter.ToInt16(receiveBuffer, 2);
-                            int receiverID = System.BitConverter.ToInt16(receiveBuffer, 4);
-                            if (dataLengthTEMP > 1024)
-                            {
-                                Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
-                                Console.WriteLine("Długośc danych do odczytania to : "+ dataLengthTEMP);
-                                Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
-                                Thread.Sleep(1000);
-                                continue;
-                            }
-                            //Console.WriteLine("Id Sender " + senderID + " Id receiver " + receiverID);
-                            // Id Sender 1000 Id receiver 1001 
+                            Console.WriteLine("Niepełny nagłówek, przerywam.");
+                            break;
                         }
+                        //
+                        // Parsowanie nagłówka
+                        int iD = System.BitConverter.ToInt16(headerBuffer, 0);
+                        int senderID = System.BitConverter.ToInt16(headerBuffer, 2);
+                        int receiverID = System.BitConverter.ToInt16(headerBuffer, 4);
+                        byte messagEType = headerBuffer[6];
+                        int dataLengthTEMP = System.BitConverter.ToInt16(headerBuffer, 7);
+                        if (senderID == 1000)
+                        {
+                            Console.WriteLine($"ID: {iD}, Sender: {senderID}, Receiver: {receiverID}, Type: {messagEType}, DataLength: {dataLengthTEMP}");
+                        }
+                        //
+                        // Odczytaj dane ramki jeśli są
+                        byte[] dataBuffer = new byte[dataLengthTEMP];
+                        if (dataLengthTEMP > 0)
+                        {
+                            int bytesRead = await networkStream.ReadAsync(dataBuffer, 0, dataLengthTEMP);
+                            //Console.WriteLine($"Dane: {BitConverter.ToString(dataBuffer)}");
+                        }
+                        //
+                        #region 310
                         // AGVStatus (ID = 310)
                         //Periodic status message from a single machine in the system. Sending interval can be changed from Navithor Server
                         //parameters: Interval_To_Send_AGV_Status_To_MES_When_AGV_Enabled and
                         //Interval_To_Send_AGV_Status_To_MES_When_AGV_Disabled.Parameter
                         //MES_Disable_Outbound_Message_Groups_Rules can be used to disable message completely.
-                        //
-                        //
-                        #region 310 
                         if (iD == 310)
                         {
                             DateTime czas = DateTime.Now;
                             //Console.WriteLine("ID = 310 | czas: " + czas);
-                            int begine = 9;
+                            int begine = 0;
                             int begine_swap = begine;
                             ListobjId310public.Clear();
                             //99 Max Length of data Frame for this comand from documentation
                             //while (99 > begine_swap)
                             //{
-                                objId310.MachineID = System.BitConverter.ToUInt16(receiveBuffer, begine_swap);
+                                objId310.MachineID = System.BitConverter.ToUInt16(dataBuffer, begine_swap);
                                 begine_swap += 2;
-                                objId310.X = System.BitConverter.ToDouble(receiveBuffer, begine_swap);
+                                objId310.X = System.BitConverter.ToDouble(dataBuffer, begine_swap);
                                 begine_swap += 8;
-                                objId310.Y = System.BitConverter.ToDouble(receiveBuffer, begine_swap);
+                                objId310.Y = System.BitConverter.ToDouble(dataBuffer, begine_swap);
                                 begine_swap += 8;
-                                objId310.H = System.BitConverter.ToDouble(receiveBuffer, begine_swap);
+                                objId310.H = System.BitConverter.ToDouble(dataBuffer, begine_swap);
                                 begine_swap += 8;
-                                objId310.Poziom = System.BitConverter.ToInt16(receiveBuffer, begine_swap);
+                                objId310.Poziom = System.BitConverter.ToInt16(dataBuffer, begine_swap);
                                 begine_swap += 2;
-                                objId310.PositionConfidence = receiveBuffer[begine_swap];
+                                objId310.PositionConfidence = dataBuffer[begine_swap];
                                 begine_swap += 1;
-                                objId310.SpeedNavigationPoint = System.BitConverter.ToDouble(receiveBuffer, begine_swap);
+                                objId310.SpeedNavigationPoint = System.BitConverter.ToDouble(dataBuffer, begine_swap);
                                 begine_swap += 8;
-                                objId310.State = receiveBuffer[begine_swap];
+                                objId310.State = dataBuffer[begine_swap];
                                 begine_swap += 1;
-                                objId310.BatteryLeve = System.BitConverter.ToDouble(receiveBuffer, begine_swap);
+                                objId310.BatteryLeve = System.BitConverter.ToDouble(dataBuffer, begine_swap);
                                 begine_swap += 8;
-                                objId310.AutoOrManual = receiveBuffer[begine_swap];
+                                objId310.AutoOrManual = dataBuffer[begine_swap];
                                 begine_swap += 1;
-                                objId310.PositionInitialized = receiveBuffer[begine_swap];
+                                objId310.PositionInitialized = dataBuffer[begine_swap];
                                 begine_swap += 1;
-                                objId310.LastSymbolPoint = System.BitConverter.ToInt32(receiveBuffer, begine_swap);
+                                objId310.LastSymbolPoint = System.BitConverter.ToInt32(dataBuffer, begine_swap);
                                 begine_swap += 4;
-                                objId310.MachineAtLastSymbolPoint = receiveBuffer[begine_swap];
+                                objId310.MachineAtLastSymbolPoint = dataBuffer[begine_swap];
                                 begine_swap += 1;
-                                objId310.TargetSymbolPoint = System.BitConverter.ToInt32(receiveBuffer, begine_swap);
+                                objId310.TargetSymbolPoint = System.BitConverter.ToInt32(dataBuffer, begine_swap);
                                 begine_swap += 4;
-                                objId310.MachineAtTarget = receiveBuffer[begine_swap];
+                                objId310.MachineAtTarget = dataBuffer[begine_swap];
                                 begine_swap += 1;
-                                objId310.Operational = receiveBuffer[begine_swap];
+                                objId310.Operational = dataBuffer[begine_swap];
                                 begine_swap += 1;
-                                objId310.InProduction = receiveBuffer[begine_swap];
+                                objId310.InProduction = dataBuffer[begine_swap];
                                 begine_swap += 1;
-                                objId310.LoadStatus = receiveBuffer[begine_swap];
+                                objId310.LoadStatus = dataBuffer[begine_swap];
                                 begine_swap += 1;
-                                objId310.BatteryVoltage = System.BitConverter.ToDouble(receiveBuffer, begine_swap);
+                                objId310.BatteryVoltage = System.BitConverter.ToDouble(dataBuffer, begine_swap);
                                 begine_swap += 8;
                                 objId310.ChargingStatus = receiveBuffer[begine_swap];
                                 begine_swap += 1;
-                                objId310.DistanceToTarget = System.BitConverter.ToSingle(receiveBuffer, begine_swap);
+                                objId310.DistanceToTarget = System.BitConverter.ToSingle(dataBuffer, begine_swap);
                                 begine_swap += 4;
-                                objId310.CurrentDriveThroughPoint = System.BitConverter.ToInt32(receiveBuffer, begine_swap);
+                                objId310.CurrentDriveThroughPoint = System.BitConverter.ToInt32(dataBuffer, begine_swap);
                                 begine_swap += 4;
-                                objId310.NextLeveChangePointId = System.BitConverter.ToInt32(receiveBuffer, begine_swap);
+                                objId310.NextLeveChangePointId = System.BitConverter.ToInt32(dataBuffer, begine_swap);
                                 begine_swap += 4;
-                                objId310.DistanceToNextLeveelChange = System.BitConverter.ToSingle(receiveBuffer, begine_swap);
+                                objId310.DistanceToNextLeveelChange = System.BitConverter.ToSingle(dataBuffer, begine_swap);
                                 begine_swap += 4;
-                                objId310.LastSymbolPointDrivenOver = System.BitConverter.ToInt32(receiveBuffer, begine_swap);
+                                objId310.LastSymbolPointDrivenOver = System.BitConverter.ToInt32(dataBuffer, begine_swap);
                                 begine_swap += 4;
 
                                 objId310.UpdateTime = DateTime.Now;
@@ -261,67 +275,73 @@ namespace AGV_TcpIp_ConsoleApp
                         }
                         #endregion
                         //
+                        #region 349
                         // ErrorsV2 (ID = 349)
                         //This message is sent as a response to ErrorsV2 request (ID = 56).
-                        #region 349
                         if (iD == 349)
                         {
-                            Console.WriteLine("Próba odczytania ramki ID 349 ---> ID rozpoznane");
+                            //
                             ListobjId349public.Clear();
                             DateTime czas = DateTime.Now;
                             //Console.WriteLine("ID = 309 | czas: " + czas);
                             //
                             //Sprawdzenie ilości przychodzących alarmów 
-                            UInt16 NumberOfErrors = System.BitConverter.ToUInt16(receiveBuffer, 9);
+                            UInt16 NumberOfErrors = System.BitConverter.ToUInt16(dataBuffer, 0);
+                            Console.WriteLine("Ilość elementów w liście Alarmów AGV : "+NumberOfErrors);
                             //8.1. Frame
                             //Every message has a frame that consists of following data. Sender ID and Receiver ID are specified as follow:
                             //Navithor: ID = 1000, MES clients: ID = 1001, 1002, ... For example when sending a message from MES to Navithor
                             //Sender ID = 1001 and Receiver ID = 1000.
-                            int begine = 11;
+                            //int begine = 11;
+                            int begine = 2;
                             int begine_swap = begine;
                             UInt16 i = 0;
                             //
+                            Console.WriteLine("");
                             while (i < NumberOfErrors)
                             {
                                 ID_349 objId349 = new ID_349();
                                 //
                                 // Object
-                                objId349.ErrorId = System.BitConverter.ToUInt32(receiveBuffer, begine_swap);
+                                objId349.ErrorId = System.BitConverter.ToUInt32(dataBuffer, begine_swap);
                                 begine_swap += 4;
-                                objId349.NameStringLength = System.BitConverter.ToUInt16(receiveBuffer, begine_swap);
+                                objId349.NameStringLength = System.BitConverter.ToUInt16(dataBuffer, begine_swap);
                                 begine_swap += 2;
-                                objId349.Name = System.Text.Encoding.ASCII.GetString(receiveBuffer, begine_swap, objId349.NameStringLength);
+                                objId349.Name = System.Text.Encoding.ASCII.GetString(dataBuffer, begine_swap, objId349.NameStringLength);
                                 begine_swap += objId349.NameStringLength;
-                                objId349.ErrorType = (EnumErrorType)System.BitConverter.ToUInt16(receiveBuffer, begine_swap);
+                                objId349.ErrorType = (EnumErrorType)System.BitConverter.ToUInt16(dataBuffer, begine_swap);
                                 begine_swap += 2;
-                                objId349.EntityID = System.BitConverter.ToUInt32(receiveBuffer, begine_swap);
+                                objId349.EntityID = System.BitConverter.ToUInt32(dataBuffer, begine_swap);
                                 begine_swap += 4;
-                                objId349.Source = (EnumSource)receiveBuffer[begine_swap];
+                                objId349.Source = (EnumSource)dataBuffer[begine_swap];
                                 begine_swap += 1;
-                                objId349.Level = receiveBuffer[begine_swap];
+                                objId349.Level = dataBuffer[begine_swap];
                                 begine_swap += 1;
-                                objId349.Value = System.BitConverter.ToUInt16(receiveBuffer, begine_swap);
+                                objId349.Value = System.BitConverter.ToUInt16(dataBuffer, begine_swap);
                                 begine_swap += 2;
-                                objId349.Priority = System.BitConverter.ToInt16(receiveBuffer, begine_swap);
+                                objId349.Priority = System.BitConverter.ToInt16(dataBuffer, begine_swap);
                                 begine_swap += 2;
                                 //
                                 ListobjId349public.Add(objId349);
                                 i += 1;
+                                //
+                                Console.WriteLine($"LOCAL : Id: {objId349.ErrorId} | Alarm: {objId349.Name} | Maszyna AGV:  {objId349.EntityID} | Źródło : {objId349.Source}");
                             }
+                            Console.WriteLine("");
                         }
 
                         #endregion
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error Exception ; {ex}");
+                        //Console.WriteLine($"Error Exception ; {ex}");
                     }
                 //_______________________________________________
                 //
                 //THREADs
                 //
                 //_______________________________________________
-
+                //
                 int a = t.ThreadState.GetHashCode();
                     //ThreadState.U
                     if (a == 12 || a == 8)
@@ -337,14 +357,13 @@ namespace AGV_TcpIp_ConsoleApp
                         ElokonTask.Start();
                     }
                 }
-                
+                //
                 if (client.Connected == false)
                 {
                  Thread.Sleep(7000);
                 }
             }
         }
-
         static async void UpdateDatainSQL()
         {
             //List<ID_349> previousData = new List<ID_349>();
@@ -519,24 +538,47 @@ namespace AGV_TcpIp_ConsoleApp
         {
             while (true)
             {
-
 #if !DEBUG
                 Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\Logs_ElokonFunction"));
 #else
                 Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\Logs_ElokonFunction"));
 #endif
                 Console.WriteLine("");
-                if(! (ListobjId349public.Count > 0))
+                //
+                List<ID_349> localData349=ListobjId349public;
+                List<ID_310> localData310=ListobjId310public;
+                //
+                if (! (localData349.Count > 0))
                 {
-                    Console.WriteLine("Brak danych do wysłania ...");
+                    Console.WriteLine("Brak danych o alarmach AGV do wysłania ...");
                 }
                 else { 
-                    foreach(var record in ListobjId349public)
+                    foreach(var record in localData349)
                     {
                         Console.WriteLine($" Id: {record.ErrorId} | Alarm: {record.Name} | Maszyna AGV:  {record.EntityID} | Źródło : {record.Source}");
                     }
                 }
                 Console.WriteLine("");
+                //
+#if DEBUG
+                Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\Logs_MachineAGV"));
+#endif
+                Console.WriteLine("");
+                if (!(localData310.Count > 0))
+                {
+                    Console.WriteLine("Brak danych maszyn AGV do wysłania ...");
+                }
+                else
+                {
+                    foreach (var record in localData310)
+                    {
+                        Console.WriteLine($" MachineID: {record.MachineID} | MachineName: {record.MachineName} | X: {record.X} | Y:  {record.Y} | PositionConfidence : {record.PositionConfidence} | State : {record.State} | BatteryLeve : {record.BatteryLeve} | LastSymbolPoint : {record.LastSymbolPoint} | UpdateTime : {record.UpdateTime}");
+                    }
+                }
+                Console.WriteLine("");
+
+
+                //
 #if !DEBUG
                 Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\logs"));
 #else
@@ -544,6 +586,11 @@ namespace AGV_TcpIp_ConsoleApp
 #endif
                 Thread.Sleep(10000);
             }
+        }
+        // TEMP EMPTY TO TEST ONLY
+        static void TEMP_Empty()
+        {
+
         }
     }
 }

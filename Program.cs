@@ -154,7 +154,7 @@ namespace AGV_TcpIp_ConsoleApp
                         //
                         networkStream.Write(sendFrame, 0, 19);
                         //
-                        var output = networkStream.Read(receiveBuffer, 0, receiveBuffer.Length);
+                        var output = await networkStream.ReadAsync(receiveBuffer, 0, receiveBuffer.Length);
                         int iD = System.BitConverter.ToInt16(receiveBuffer, 0);
                         //
                         if(iD==310 || iD == 349)
@@ -173,47 +173,6 @@ namespace AGV_TcpIp_ConsoleApp
                             //Console.WriteLine("Id Sender " + senderID + " Id receiver " + receiverID);
                             // Id Sender 1000 Id receiver 1001 
                         }
-                        //Errors (ID = 309)
-                        // This message is sent periodically from Navithor to MES. Message contains current error status in the system.
-                        #region 309 Temporary Bocked
-                        //
-                        //if (iD == 309)
-                        //{
-                        //    ListobjId309public.Clear();
-                        //    DateTime czas = DateTime.Now;
-                        //    //Console.WriteLine("ID = 309 | czas: " + czas);
-
-                        //    int begine = 11;
-                        //    int begine_swap = begine;
-
-                        //    while (output > begine)
-                        //    {
-                        //        ID_309 objId309 = new ID_309();
-                        //        int NameLength = System.BitConverter.ToInt16(receiveBuffer, begine_swap);
-                        //        begine_swap += 2;
-                        //        begine_swap += NameLength;
-                        //        objId309.NumberId = System.BitConverter.ToUInt16(receiveBuffer, begine_swap);
-                        //        begine_swap += 2;
-                        //        objId309.Value = System.BitConverter.ToUInt16(receiveBuffer, begine_swap);
-                        //        begine_swap += 2;
-                        //        begine += 2;
-
-                        //        string[] words = System.Text.Encoding.ASCII.GetString(receiveBuffer, begine, NameLength).Split(".");
-
-                        //        objId309.Name = words[2];
-                        //        objId309.Machine = words[1];
-                        //        DateTime Time = DateTime.Now;
-                        //        objId309.UpdatedTime = Time;
-
-                        //        ListobjId309public.Add(objId309);
-
-
-                        //        begine += NameLength + 4;
-                        //    }
-                        //}
-                        #endregion
-
-                        //
                         // AGVStatus (ID = 310)
                         //Periodic status message from a single machine in the system. Sending interval can be changed from Navithor Server
                         //parameters: Interval_To_Send_AGV_Status_To_MES_When_AGV_Enabled and
@@ -307,6 +266,7 @@ namespace AGV_TcpIp_ConsoleApp
                         #region 349
                         if (iD == 349)
                         {
+                            Console.WriteLine("Próba odczytania ramki ID 349 ---> ID rozpoznane");
                             ListobjId349public.Clear();
                             DateTime czas = DateTime.Now;
                             //Console.WriteLine("ID = 309 | czas: " + czas);
@@ -320,8 +280,6 @@ namespace AGV_TcpIp_ConsoleApp
                             int begine = 11;
                             int begine_swap = begine;
                             UInt16 i = 0;
-                            //
-                            Console.WriteLine("Próba odczytania ramki ID 349 ---> ID rozpoznane");
                             //
                             while (i < NumberOfErrors)
                             {
@@ -352,17 +310,8 @@ namespace AGV_TcpIp_ConsoleApp
                             }
                         }
 
-                            #endregion
+                        #endregion
                     }
-                    //catch (SocketException ex)
-                    //{
-                    //    Console.WriteLine($"Error SocketException ; {ex.Message}");
-                    //}
-                    //catch (IOException ex)
-                    //{
-                    //    //Console.WriteLine($"Error IOException ; {ex.Message}");
-                    //    Console.WriteLine($"Error IOException ; {ex.InnerException}");
-                    //}
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Error Exception ; {ex}");

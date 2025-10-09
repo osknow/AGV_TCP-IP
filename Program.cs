@@ -52,6 +52,7 @@ namespace AGV_TcpIp_ConsoleApp
         static ID_349 objId349 = new ID_349();
         //
         static Thread t = new Thread(new ThreadStart(UpdateDatainSQL));
+        static Thread ElokonTask = new Thread(new ThreadStart(WriteDataToTXT));
         //
         // TESTY LOKALNE 
         //
@@ -320,6 +321,8 @@ namespace AGV_TcpIp_ConsoleApp
                             int begine_swap = begine;
                             UInt16 i = 0;
                             //
+                            Console.WriteLine("Próba odczytania ramki ID 349 ---> ID rozpoznane");
+                            //
                             while (i < NumberOfErrors)
                             {
                                 ID_349 objId349 = new ID_349();
@@ -377,7 +380,15 @@ namespace AGV_TcpIp_ConsoleApp
                         t.IsBackground = true;
                         t.Start();
                     }
+                    int b = ElokonTask.ThreadState.GetHashCode();
+                    //ThreadState.U
+                    if (b == 12 || b == 8)
+                    {
+                        ElokonTask.IsBackground = true;
+                        ElokonTask.Start();
+                    }
                 }
+                
                 if (client.Connected == false)
                 {
                  Thread.Sleep(7000);
@@ -446,7 +457,20 @@ namespace AGV_TcpIp_ConsoleApp
                                     toDel.Value == item.Value));
                                 response349 = new HttpResponseMessage(HttpStatusCode.BadRequest);
                                 response349 = await client.PostAsJsonAsync($"{HttpSerwerURI}/api/Agv/AGV_AlarmsUpdate_v2.1.0/", requestData);
-                                Console.WriteLine("Send update with Alarms");
+                                Console.WriteLine("Aktualizacja ALARMÓW AGV do DB");
+                            }
+                            else
+                            {
+                                if(ListobjId349public.Count > 0)
+                                {
+                                    Console.WriteLine("Brak ALARMÓW do wysłania --> zgodnosć między ramką a DB");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Brak ALARMÓW do wysłania - BRAK alarmów w ramce");
+                                }
+
+
                             }
                             #endregion
 
@@ -501,16 +525,16 @@ namespace AGV_TcpIp_ConsoleApp
                                         }
                                         machineListString.Append(machine.MachineName);
                                         }
-                                    Console.WriteLine("Send update with MACHINE for " + ListobjId310public.Count + " machines. Main for :" + machineListString);
+                                    Console.WriteLine("Aktualizacja MASZYNY dla " + ListobjId310public.Count + " maszyny. Dla maszyny: " + machineListString);
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Dane nie wysłane z uwagi na tę samą zawartość");
+                                    Console.WriteLine("Dane MASZYN AGV nie wysłane z uwagi na tę samą zawartość");
                                 }
                             }
                             else
                             {
-                                Console.WriteLine("Brak danych do wysłania Count = 0 ");
+                                Console.WriteLine("Brak danych z MASZYN AGV do wysłania Ilość = 0 ");
                             }
 
                             #endregion
@@ -540,6 +564,36 @@ namespace AGV_TcpIp_ConsoleApp
                     }
 
                 }
+            }
+        }
+        static void WriteDataToTXT()
+        {
+            while (true)
+            {
+
+#if !DEBUG
+                Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\Logs_ElokonFunction"));
+#else
+                Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\Logs_ElokonFunction"));
+#endif
+                Console.WriteLine("");
+                if(! (ListobjId349public.Count > 0))
+                {
+                    Console.WriteLine("Brak danych do wysłania ...");
+                }
+                else { 
+                    foreach(var record in ListobjId349public)
+                    {
+                        Console.WriteLine($" Id: {record.ErrorId} | Alarm: {record.Name} | Maszyna AGV:  {record.EntityID} | Źródło : {record.Source}");
+                    }
+                }
+                Console.WriteLine("");
+#if !DEBUG
+                Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\logs"));
+#else
+                Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\logs"));
+#endif
+                Thread.Sleep(10000);
             }
         }
     }

@@ -14,14 +14,12 @@ namespace AGV_TcpIp_ConsoleApp.SubPrograms
         public static async Task<List<ID_310>> Get()
         {
             List <ID_310> empty = new List<ID_310>();
-            string HttpSerwerURI = "https://pozmda02.duni.org:82/api/Agv/AGV_Machines";
+            string HttpSerwerURI = "https://pozmda02.duni.org/api/Agv/AGV_Machines";
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
                     return  await client.GetFromJsonAsync<List<ID_310>>(HttpSerwerURI);
-
-                     
                 }
             }
             catch (Exception e)

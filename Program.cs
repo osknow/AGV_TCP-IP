@@ -38,9 +38,16 @@ namespace AGV_TcpIp_ConsoleApp
     {
 
         // Czas cyklicznego odświeżenia danych w bazie danych 
-        public static int SQL_UpdateTime = 5000;
+        public static int SQL_UpdateTime =10000;
         public static List<ID_309> ListobjId309public { get; set; } = new List<ID_309>();
-        public static List<ID_310> ListobjId310public { get; set; } = new List<ID_310>();
+
+        public static List<ID_310> ListobjId310public { get; } = new()
+        {
+            new ID_310 { MachineName = "A-Mate 1" },
+            new ID_310 { MachineName = "A-Mate 2" },
+            new ID_310 { MachineName = "A-Mate 3" }
+        };
+
         public static List<ID_310> ListobjId310publicLastUpdated { get; set; } = new List<ID_310>();
         public static List<ID_349> ListobjId349public { get; set; } = new List<ID_349>();
         public static List<ID_349> ListobjId349publicLastUpdated { get; set; } = new List<ID_349>();
@@ -52,13 +59,15 @@ namespace AGV_TcpIp_ConsoleApp
         static ID_310 objId310 = new ID_310();
         static ID_349 objId349 = new ID_349();
         //
-        //static Thread t = new Thread(new ThreadStart(UpdateDatainSQL));
-        static Thread t = new Thread(new ThreadStart(TEMP_Empty));
-        static Thread ElokonTask = new Thread(new ThreadStart(WriteDataToTXT));
+        static Thread t = new Thread(new ThreadStart(UpdateDatainSQL));
+        // To TESTS Only 
+        //static Thread t = new Thread(new ThreadStart(TEMP_Empty));
+        // Temporary block
+        //static Thread ElokonTask = new Thread(new ThreadStart(WriteDataToTXT));
         //
         // TESTY LOKALNE 
         //
-        //public static string HttpSerwerURI { get; set; } = "https://localhost:44396";
+        //public static string HttpSerwerURI { get; set; } = "http://localhost:81";
         public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org";
         //public static string HttpSerwerURI { get; set; } = "https://pozmda02.duni.org:82";
 
@@ -67,11 +76,10 @@ namespace AGV_TcpIp_ConsoleApp
         static   async Task Main()
         {
 #if !DEBUG
-            Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\logs"));
+            Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\logs_TEMP"));
 #else
             Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\logs"));
 #endif
-
             try
             {
                 ListobjId310publicLastUpdated = await GetMachinesAGV_pozmda02.Get();
@@ -135,9 +143,13 @@ namespace AGV_TcpIp_ConsoleApp
             DateTime startTime = DateTime.Now;
             Console.WriteLine(startTime);
             //Task uruchaminay co 5 min więć while trwa max 4min50sec = 290sec
-            while (DateTime.Now < startTime.AddSeconds(2900))
+            while (DateTime.Now < startTime.AddSeconds(290))
             {
-                
+#if !DEBUG
+            Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\logs_TEMP"));
+#else
+                Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\logs"));
+#endif
                 Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
                 Console.WriteLine("Łączenie z Serverem TCP/IP z [pozagv02] ...");
                 Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
@@ -149,8 +161,13 @@ namespace AGV_TcpIp_ConsoleApp
                 byte[] headerBuffer = new byte[9];
                 while (client.Connected)
                 {
-
-                    try { 
+#if !DEBUG
+            Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\logs_TEMP"));
+#else
+                    Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\logs"));
+#endif
+                    try
+                    { 
                         TcpStatusConnection = true;
                         // Sleep z powodu zbyt częstego odpytywania serwera ponoć. Twierdzenie ELOKONu. 
                         // Navitec zapisuje logi do pliku gdzie po prostu logują nasze zapytania o ramkę  56 która przychodzi często chcąc mieć najrzetelniejsze dane.
@@ -197,14 +214,15 @@ namespace AGV_TcpIp_ConsoleApp
                         //MES_Disable_Outbound_Message_Groups_Rules can be used to disable message completely.
                         if (iD == 310)
                         {
+#if !DEBUG
+                            Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\Logs_MachineAGV_TEMP"));
+#else
+                            Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\Logs_MachineAGV"));
+#endif
                             DateTime czas = DateTime.Now;
                             //Console.WriteLine("ID = 310 | czas: " + czas);
                             int begine = 0;
                             int begine_swap = begine;
-                            ListobjId310public.Clear();
-                            //99 Max Length of data Frame for this comand from documentation
-                            //while (99 > begine_swap)
-                            //{
                                 objId310.MachineID = System.BitConverter.ToUInt16(dataBuffer, begine_swap);
                                 begine_swap += 2;
                                 objId310.X = System.BitConverter.ToDouble(dataBuffer, begine_swap);
@@ -270,8 +288,43 @@ namespace AGV_TcpIp_ConsoleApp
                                 {
                                     objId310.MachineName = "A-Mate 3";
                                 }
-                            //}
-                            ListobjId310public.Add(objId310);
+
+
+                            var currentMachine = ListobjId310public.Find(x => x.MachineName == objId310.MachineName);
+                            ListobjId310public.Remove(currentMachine);
+                            if (currentMachine != null)
+                            {
+                                currentMachine.MachineID = objId310.MachineID;
+                                currentMachine.X = objId310.X;
+                                currentMachine.Y = objId310.Y;
+                                currentMachine.H = objId310.H;
+                                currentMachine.Poziom = objId310.Poziom;
+                                currentMachine.PositionConfidence = objId310.PositionConfidence;
+                                currentMachine.SpeedNavigationPoint = objId310.SpeedNavigationPoint;
+                                currentMachine.State = objId310.State;
+                                currentMachine.BatteryLeve = objId310.BatteryLeve;
+                                currentMachine.AutoOrManual = objId310.AutoOrManual;
+                                currentMachine.PositionInitialized = objId310.PositionInitialized;
+                                currentMachine.LastSymbolPoint = objId310.LastSymbolPoint;
+                                currentMachine.MachineAtLastSymbolPoint = objId310.MachineAtLastSymbolPoint;
+                                currentMachine.TargetSymbolPoint = objId310.TargetSymbolPoint;
+                                currentMachine.MachineAtTarget = objId310.MachineAtTarget;
+                                currentMachine.Operational = objId310.Operational;
+                                currentMachine.InProduction = objId310.InProduction;
+                                currentMachine.LoadStatus = objId310.LoadStatus;
+                                currentMachine.BatteryVoltage = objId310.BatteryVoltage;
+                                currentMachine.ChargingStatus = objId310.ChargingStatus;
+                                currentMachine.DistanceToTarget = objId310.DistanceToTarget;
+                                currentMachine.CurrentDriveThroughPoint = objId310.CurrentDriveThroughPoint;
+                                currentMachine.NextLeveChangePointId = objId310.NextLeveChangePointId;
+                                currentMachine.DistanceToNextLeveelChange = objId310.DistanceToNextLeveelChange;
+                                currentMachine.LastSymbolPointDrivenOver = objId310.LastSymbolPointDrivenOver;
+                                currentMachine.UpdateTime = objId310.UpdateTime;
+                            }
+                            ListobjId310public.Add(currentMachine);
+                            //ListobjId310public.Add(objId310);
+                            Console.WriteLine($" MachineID: {objId310.MachineID} | MachineName: {objId310.MachineName} | X: {objId310.X} | Y:  {objId310.Y} | PositionConfidence : {objId310.PositionConfidence} | State : {objId310.State} | BatteryLeve : {objId310.BatteryLeve} | LastSymbolPoint : {objId310.LastSymbolPoint} | UpdateTime : {objId310.UpdateTime}");
+                            
                         }
                         #endregion
                         //
@@ -297,6 +350,11 @@ namespace AGV_TcpIp_ConsoleApp
                             int begine_swap = begine;
                             UInt16 i = 0;
                             //
+#if !DEBUG
+                            Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\Logs_ElokonFunction_TEMP"));
+#else
+                            Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\Logs_ElokonFunction"));
+#endif
                             Console.WriteLine("");
                             while (i < NumberOfErrors)
                             {
@@ -349,13 +407,13 @@ namespace AGV_TcpIp_ConsoleApp
                         t.IsBackground = true;
                         t.Start();
                     }
-                    int b = ElokonTask.ThreadState.GetHashCode();
-                    //ThreadState.U
-                    if (b == 12 || b == 8)
-                    {
-                        ElokonTask.IsBackground = true;
-                        ElokonTask.Start();
-                    }
+                    //int b = ElokonTask.ThreadState.GetHashCode();
+                    ////ThreadState.U
+                    //if (b == 12 || b == 8)
+                    //{
+                    //    ElokonTask.IsBackground = true;
+                    //    ElokonTask.Start();
+                    //}
                 }
                 //
                 if (client.Connected == false)
@@ -387,9 +445,9 @@ namespace AGV_TcpIp_ConsoleApp
                     {
                         using (HttpClient client = new HttpClient())
                         {
-                            //
-                            // Update alarms to pozmda02 but only changes
-                            //
+
+                            //Update alarms to pozmda02 but only changes
+
                             #region Update ALARMS
                             // Do DODANIA
                             // Te których nie ma na starej liście.
@@ -401,7 +459,13 @@ namespace AGV_TcpIp_ConsoleApp
                             // Do USUNIĘCIA
                             // Te które są na starej liśćie.
                             // Metoda ExceptBy - zapewnia pominięcie w porównaniu obiektówpola Id oraz OccurTime
-                            IEnumerable<ID_349> toDelete = ListobjId349publicLastUpdated.ExceptBy(ListobjId349public, x => new { x.EntityID, x.ErrorId, x.ErrorType, x.Level, x.Name, x.NameStringLength, x.Priority, x.Source, x.Value });
+                            IEnumerable<ID_349> toDelete = Enumerable.Empty<ID_349>(); 
+                            //
+                            if (! (ListobjId349publicLastUpdated == null)) 
+                            {
+                                toDelete = ListobjId349publicLastUpdated.ExceptBy(ListobjId349public, x => new { x.EntityID, x.ErrorId, x.ErrorType, x.Level, x.Name, x.NameStringLength, x.Priority, x.Source, x.Value });
+                                //
+                            }
                             //
                             AGV_AlarmsUpdateRequest requestData = new AGV_AlarmsUpdateRequest
                             {
@@ -412,8 +476,12 @@ namespace AGV_TcpIp_ConsoleApp
                             response349 = new HttpResponseMessage(HttpStatusCode.OK);
                             if (requestData.DataToAdd.Count > 0 || requestData.DataToDelete.Count > 0)
                             {
+                                if (requestData.DataToAdd.Count > 0) { 
                                 ListobjId349publicLastUpdated.AddRange(toAdd);
-                                ListobjId349publicLastUpdated.RemoveAll(item => toDelete.Any(toDel =>
+                                }
+                                if (requestData.DataToDelete.Count > 0)
+                                {
+                                    ListobjId349publicLastUpdated.RemoveAll(item => toDelete.Any(toDel =>
                                     toDel.EntityID == item.EntityID &&
                                     toDel.ErrorId == item.ErrorId &&
                                     toDel.ErrorType == item.ErrorType &&
@@ -423,19 +491,20 @@ namespace AGV_TcpIp_ConsoleApp
                                     toDel.Priority == item.Priority &&
                                     toDel.Source == item.Source &&
                                     toDel.Value == item.Value));
+                                }
                                 response349 = new HttpResponseMessage(HttpStatusCode.BadRequest);
                                 response349 = await client.PostAsJsonAsync($"{HttpSerwerURI}/api/Agv/AGV_AlarmsUpdate_v2.1.0/", requestData);
-                                Console.WriteLine("Aktualizacja ALARMÓW AGV do DB");
+                                //Console.WriteLine("Aktualizacja ALARMÓW AGV do DB");
                             }
                             else
                             {
-                                if(ListobjId349public.Count > 0)
+                                if (ListobjId349public.Count > 0)
                                 {
-                                    Console.WriteLine("Brak ALARMÓW do wysłania --> zgodnosć między ramką a DB");
+                                    //Console.WriteLine("Brak ALARMÓW do wysłania --> zgodnosć między ramką a DB");
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Brak ALARMÓW do wysłania - BRAK alarmów w ramce");
+                                    //Console.WriteLine("Brak ALARMÓW do wysłania - BRAK alarmów w ramce");
                                 }
 
 
@@ -445,7 +514,7 @@ namespace AGV_TcpIp_ConsoleApp
                             #region Update MACHINES AGV
                             if (ListobjId310public.Count > 0)
                             {
-                                if(ListobjId310public.Count > 1 && ListobjId310publicLastUpdated[1].MachineName == "A-Mate2")
+                                if (ListobjId310public.Count > 1 && ListobjId310publicLastUpdated[1].MachineName == "A-Mate2")
                                 {
                                     ListobjId310publicLastUpdated[1].MachineName = "A-Mate 2";
                                 }
@@ -455,13 +524,32 @@ namespace AGV_TcpIp_ConsoleApp
                                 // Porównanie obiektów i sprawdzenie czy są rówżnice w obiekcie który przyszedł względem obiektu który
                                 // przechowuje ostatnio zaktualizowane maszyny AGV.
                                 //
-                                bool toUpdate = Extensions.Excepts(ListobjId310public[0] , ListobjId310publicLastUpdated, x => new { 
-                                    x.MachineName,x.X,x.Y,x.H,x.Poziom,x.PositionConfidence, 
-                                    x.SpeedNavigationPoint, x.State, x.BatteryLeve, x.AutoOrManual, 
-                                    x.PositionInitialized, x.LastSymbolPoint, x.MachineAtLastSymbolPoint, 
-                                    x.TargetSymbolPoint, x.MachineAtTarget, x.Operational, x.InProduction, 
-                                    x.LoadStatus, x.BatteryVoltage, x.ChargingStatus, x.DistanceToTarget, 
-                                    x.CurrentDriveThroughPoint, x.NextLeveChangePointId, x.DistanceToNextLeveelChange, 
+                                bool toUpdate = Extensions.Excepts(ListobjId310public[0], ListobjId310publicLastUpdated, x => new
+                                {
+                                    x.MachineName,
+                                    x.X,
+                                    x.Y,
+                                    x.H,
+                                    x.Poziom,
+                                    x.PositionConfidence,
+                                    x.SpeedNavigationPoint,
+                                    x.State,
+                                    x.BatteryLeve,
+                                    x.AutoOrManual,
+                                    x.PositionInitialized,
+                                    x.LastSymbolPoint,
+                                    x.MachineAtLastSymbolPoint,
+                                    x.TargetSymbolPoint,
+                                    x.MachineAtTarget,
+                                    x.Operational,
+                                    x.InProduction,
+                                    x.LoadStatus,
+                                    x.BatteryVoltage,
+                                    x.ChargingStatus,
+                                    x.DistanceToTarget,
+                                    x.CurrentDriveThroughPoint,
+                                    x.NextLeveChangePointId,
+                                    x.DistanceToNextLeveelChange,
                                     x.LastSymbolPointDrivenOver
                                 });
                                 // false gdy jest zgodnosc obiektów    - NIE UAKTUALNIAMY DANYCH 
@@ -475,10 +563,10 @@ namespace AGV_TcpIp_ConsoleApp
                                     //
                                     #region Updated data in List model ID_310
                                     ListobjId310publicLastUpdated = ListobjId310publicLastUpdated.Select(obj =>
-                                        { 
+                                        {
                                             if (obj.MachineName == ListobjId310public[0].MachineName)
-                                            { 
-                                               obj = Mappers.dataID_310_toDto(ListobjId310public[0]);
+                                            {
+                                                obj = Mappers.dataID_310_toDto(ListobjId310public[0]);
                                             }
                                             return obj;
                                         }).ToList();
@@ -486,29 +574,29 @@ namespace AGV_TcpIp_ConsoleApp
                                     //
                                     StringBuilder machineListString = new StringBuilder();
                                     foreach (var machine in ListobjId310public)
-                                        {
+                                    {
                                         if (machineListString.Length > 0)
                                         {
                                             machineListString.Append(", ");
                                         }
                                         machineListString.Append(machine.MachineName);
-                                        }
-                                    Console.WriteLine("Aktualizacja MASZYNY dla " + ListobjId310public.Count + " maszyny. Dla maszyny: " + machineListString);
+                                    }
+                                    //Console.WriteLine("Aktualizacja MASZYNY dla " + ListobjId310public.Count + " maszyny. Dla maszyny: " + machineListString);
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Dane MASZYN AGV nie wysłane z uwagi na tę samą zawartość");
+                                    //Console.WriteLine("Dane MASZYN AGV nie wysłane z uwagi na tę samą zawartość");
                                 }
                             }
                             else
                             {
-                                Console.WriteLine("Brak danych z MASZYN AGV do wysłania Ilość = 0 ");
+                                //Console.WriteLine("Brak danych z MASZYN AGV do wysłania Ilość = 0 ");
                             }
 
                             #endregion
                             if (response310.IsSuccessStatusCode && response349.IsSuccessStatusCode)
                             {
-                                ListobjId310public.Clear();
+                                //ListobjId310public.Clear();
                                 DateTime czas = DateTime.Now;
                                 //Console.WriteLine("Work work work ...");
                             }
@@ -516,7 +604,7 @@ namespace AGV_TcpIp_ConsoleApp
                             {
                                 ListobjId310publicLastUpdated.Clear();
                                 ListobjId349publicLastUpdated.Clear();
-                                Console.WriteLine("Error Occurred  sending machine status: "); ;
+                                //Console.WriteLine("Error Occurred  sending machine status: "); ;
                             }
                         }
                         //}
@@ -534,57 +622,76 @@ namespace AGV_TcpIp_ConsoleApp
                 }
             }
         }
+
+        //
+        private static readonly object _lock349 = new object();
+        private static readonly object _lock310 = new object();
+        //
         static void WriteDataToTXT()
         {
             while (true)
             {
 #if !DEBUG
-                Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\Logs_ElokonFunction"));
+                Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\Logs_ElokonFunction_TEMP"));
 #else
                 Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\Logs_ElokonFunction"));
 #endif
                 Console.WriteLine("");
                 //
-                List<ID_349> localData349=ListobjId349public;
-                List<ID_310> localData310=ListobjId310public;
-                //
-                if (! (localData349.Count > 0))
+                try
                 {
-                    Console.WriteLine("Brak danych o alarmach AGV do wysłania ...");
-                }
-                else { 
-                    foreach(var record in localData349)
-                    {
-                        Console.WriteLine($" Id: {record.ErrorId} | Alarm: {record.Name} | Maszyna AGV:  {record.EntityID} | Źródło : {record.Source}");
-                    }
-                }
-                Console.WriteLine("");
-                //
-#if DEBUG
-                Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\Logs_MachineAGV"));
-#endif
-                Console.WriteLine("");
-                if (!(localData310.Count > 0))
-                {
-                    Console.WriteLine("Brak danych maszyn AGV do wysłania ...");
-                }
-                else
-                {
-                    foreach (var record in localData310)
-                    {
-                        Console.WriteLine($" MachineID: {record.MachineID} | MachineName: {record.MachineName} | X: {record.X} | Y:  {record.Y} | PositionConfidence : {record.PositionConfidence} | State : {record.State} | BatteryLeve : {record.BatteryLeve} | LastSymbolPoint : {record.LastSymbolPoint} | UpdateTime : {record.UpdateTime}");
-                    }
-                }
-                Console.WriteLine("");
+                    List<ID_349> localData349;
+                    List<ID_310> localData310;
 
+                    lock (_lock349)
+                    {
+                        localData349 = new List<ID_349>(ListobjId349public);
+                    }
 
-                //
+                    lock (_lock310)
+                    {
+                        localData310 = new List<ID_310>(ListobjId310public);
+                    }
+
+                    //
+                    if (!(localData349.Count > 0))
+                    {
+                        Console.WriteLine("Brak danych o alarmach AGV do wysłania ...");
+                    }
+                    else
+                    {
+                        foreach (var record in localData349)
+                        {
+                            Console.WriteLine($" Id: {record.ErrorId} | Alarm: {record.Name} | Maszyna AGV:  {record.EntityID} | Źródło : {record.Source}");
+                        }
+                    }
+                    Console.WriteLine("");
+                    //
 #if !DEBUG
-                Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\logs"));
-#else
-                Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\logs"));
+                Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\Logs_MachineAGV_TEMP"));
+#else 
+                    Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\Logs_MachineAGV"));
 #endif
-                Thread.Sleep(10000);
+                    Console.WriteLine("");
+                    if (!(localData310.Count > 0))
+                    {
+                        Console.WriteLine("Brak danych maszyn AGV do wysłania ...");
+                    }
+                    else
+                    {
+                        foreach (var record in localData310)
+                        {
+                            Console.WriteLine($" MachineID: {record.MachineID} | MachineName: {record.MachineName} | X: {record.X} | Y:  {record.Y} | PositionConfidence : {record.PositionConfidence} | State : {record.State} | BatteryLeve : {record.BatteryLeve} | LastSymbolPoint : {record.LastSymbolPoint} | UpdateTime : {record.UpdateTime}");
+                        }
+                    }
+                    Console.WriteLine("");
+                    Thread.Sleep(10000);
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine("Error during write lgs to .txt");
+                    Console.WriteLine(e);
+                }
             }
         }
         // TEMP EMPTY TO TEST ONLY

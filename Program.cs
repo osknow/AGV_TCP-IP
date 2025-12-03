@@ -323,8 +323,49 @@ namespace AGV_TcpIp_ConsoleApp
                             }
                             ListobjId310public.Add(currentMachine);
                             //ListobjId310public.Add(objId310);
-                            Console.WriteLine($" MachineID: {objId310.MachineID} | MachineName: {objId310.MachineName} | X: {objId310.X} | Y:  {objId310.Y} | PositionConfidence : {objId310.PositionConfidence} | State : {objId310.State} | BatteryLeve : {objId310.BatteryLeve} | LastSymbolPoint : {objId310.LastSymbolPoint} | UpdateTime : {objId310.UpdateTime}");
-                            
+                            //Console.WriteLine($" MachineID: {objId310.MachineID} , MachineName: {objId310.MachineName} , X: {objId310.X} , Y:  {objId310.Y} , Level : {objId310.Poziom} , PositionConfidence : {objId310.PositionConfidence} , State : {objId310.State} , BatteryLeve : {objId310.BatteryLeve} , LastSymbolPoint : {objId310.LastSymbolPoint} , UpdateTime : {objId310.UpdateTime} , ") ;
+
+
+                            //State
+                            string stateStringValue = "";
+
+                            if (Enum.GetName(typeof(StateEnum), objId310.State) is not null)
+                            {
+                                stateStringValue = Enum.GetName(typeof(StateEnum), objId310.State);
+                            }
+                            else
+                            {
+                                stateStringValue = $"{objId310.State}";
+                            }
+                            //
+                            Console.WriteLine(
+                                $" MachineId: {objId310.MachineID}" +
+                                $" ; X: {objId310.X}" +
+                                $" ; Y: {objId310.Y}" +
+                                $" ; H: {objId310.H}" +
+                                $" ; Level: {objId310.Poziom}" +
+                                $" ; PositionConfidence: {objId310.PositionConfidence}" +
+                                $" ; SpeedNavigationPoint: {objId310.SpeedNavigationPoint}" +
+                                $" ; State: {stateStringValue}" +
+                                $" ; BatteryLevel: {objId310.BatteryLeve}" +
+                                $" ; AutoOrManual: {Enum.GetName(typeof(AutoOrManualEnum),objId310.AutoOrManual)}" +
+                                $" ; PositionInitialized: {objId310.PositionInitialized}" +
+                                $" ; LastSymbolPoint: {objId310.LastSymbolPoint}" +
+                                $" ; MachineAtLastSymbolPoint: {objId310.MachineAtLastSymbolPoint}" +
+                                $" ; TargetSymbolPoint: {objId310.TargetSymbolPoint}" +
+                                $" ; MachineAtTarget: {objId310.MachineAtTarget}" +
+                                $" ; Operational: {Enum.GetName(typeof(OperationalEnum), objId310.Operational)}" +
+                                $" ; InProduction:{Enum.GetName(typeof(InProductionEnum),objId310.InProduction)}" +
+                                $" ; LoadStatus: {Enum.GetName(typeof(LoadStatusEnum), objId310.LoadStatus)}" +
+                                $" ; BatteryVoltage: {objId310.BatteryVoltage}" +   // z "Battery voltage"
+                                $" ; ChargingStatus: {Enum.GetName(typeof(ChargingStatusEnum), objId310.ChargingStatus)}" +
+                                $" ; DistanceToTarget: {objId310.DistanceToTarget}" +
+                                $" ; CurrentDriveThroughPoint: {objId310.CurrentDriveThroughPoint}" +
+                                $" ; NextLevelChangePointId: {objId310.NextLeveChangePointId}" +
+                                $" ; DistanceToNextLevelChange: {objId310.DistanceToNextLeveelChange}"+
+                                $" ; LastSymbolPointDrivenOver: {objId310.LastSymbolPointDrivenOver}"+
+                                ";"
+                             );
                         }
                         #endregion
                         //

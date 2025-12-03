@@ -69,5 +69,60 @@ namespace AGV_TcpIp_ConsoleApp.Model
         public bool AlarmSended { get; set; }
         public bool AGV_SerwviceWork { get; set; }
     }
+    public enum AutoOrManualEnum
+    {
+        Manual =0,
+        Auto = 1
+    }
+    public enum StateEnum
+    {
+
+        StartState = 1,
+        StandbyState = 2,
+        AutoState = 3,
+        value4 = 4,
+        value5 = 5,
+        value6 = 6,
+        value7 = 7,
+        value8 = 8,
+        FSTOP_State = 9,
+        value10 = 10,
+        value11 = 11,
+        value12 = 12,
+        value13 = 13,
+        LoadState = 14,
+        HoldState = 15,
+        ManualState = 16,
+        PauseState = 17,
+        value18 = 18,
+        value19 = 19,
+        value20 = 20,
+        value21 = 21,
+    }
+    public enum LoadStatusEnum
+    {
+        Unknow = 0,
+        Empty = 1,
+        EmptyStarted = 2,
+        PickupStarted = 3,
+        Full = 4,
+    }
+    public enum ChargingStatusEnum
+    {
+        NotCharging = 0,
+        ChargingRequest = 1,
+        Charging = 2,
+    }
+    public enum OperationalEnum
+    {
+        NoError = 0,
+        ErrorStoppingRobot = 1,
+    }    
+    public enum InProductionEnum
+    {
+        NotInProduction = 0,
+        InProduction = 1,
+    }
+    
 }
 

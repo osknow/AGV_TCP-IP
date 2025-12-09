@@ -38,7 +38,7 @@ namespace AGV_TcpIp_ConsoleApp
     {
 
         // Czas cyklicznego odświeżenia danych w bazie danych 
-        public static int SQL_UpdateTime =10000;
+        public static int SQL_UpdateTime =5000;
         public static List<ID_309> ListobjId309public { get; set; } = new List<ID_309>();
 
         public static List<ID_310> ListobjId310public { get; } = new()
@@ -59,7 +59,12 @@ namespace AGV_TcpIp_ConsoleApp
         static ID_310 objId310 = new ID_310();
         static ID_349 objId349 = new ID_349();
         //
-        static Thread t = new Thread(new ThreadStart(UpdateDatainSQL));
+        static Thread updateDatainSQL_Thread = new Thread(new ThreadStart(UpdateDatainSQL));
+        // Update Alarms AGV Frqame 56
+        static Thread updateAgvAlarms_56_Thread = new Thread(new ThreadStart(UpdateVarialeToSendFrame_56));
+        //
+        static bool AgvAlarmsFrameSend_State = false;
+
         // To TESTS Only 
         //static Thread t = new Thread(new ThreadStart(TEMP_Empty));
         // Temporary block
@@ -92,7 +97,8 @@ namespace AGV_TcpIp_ConsoleApp
                 Console.WriteLine(ex.Message);
                 Console.WriteLine("_______________________________________________________________________________________________________________________________________________________________");
                 Thread.Sleep(5000);
-                t.Interrupt();
+                updateDatainSQL_Thread.Interrupt();
+                updateAgvAlarms_56_Thread.Interrupt();
                 await Main();
             }
             //sec.Resume;
@@ -171,14 +177,11 @@ namespace AGV_TcpIp_ConsoleApp
                         TcpStatusConnection = true;
                         // Sleep z powodu zbyt częstego odpytywania serwera ponoć. Twierdzenie ELOKONu. 
                         // Navitec zapisuje logi do pliku gdzie po prostu logują nasze zapytania o ramkę  56 która przychodzi często chcąc mieć najrzetelniejsze dane.
-                        Thread.Sleep(200);
+                        //Thread.Sleep(200);
                         //
                         Byte[] receiveBuffer = new byte[1024];
                         int readTotal;
-                        // Request po Errors_v2
-                        networkStream.Write(sendFrame, 0, 19);
                         //
-
                         // Odczytaj nagłówek
                         int read = await networkStream.ReadAsync(headerBuffer, 0, headerBuffer.Length);
                         if (read < headerBuffer.Length)
@@ -374,6 +377,7 @@ namespace AGV_TcpIp_ConsoleApp
                         //This message is sent as a response to ErrorsV2 request (ID = 56).
                         if (iD == 349)
                         {
+
                             //
                             ListobjId349public.Clear();
                             DateTime czas = DateTime.Now;
@@ -429,6 +433,18 @@ namespace AGV_TcpIp_ConsoleApp
                             Console.WriteLine("");
                         }
 
+
+
+                        //
+                        // Request po Errors_v2
+                        if (AgvAlarmsFrameSend_State)
+                        {
+                            networkStream.Write(sendFrame, 0, 19);
+                            //
+                            Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\logs"));
+                            Console.WriteLine("Ramka ID:56 wysłana ...");
+                        }
+                        AgvAlarmsFrameSend_State = false;
                         #endregion
                     }
                     catch (Exception ex)
@@ -441,20 +457,20 @@ namespace AGV_TcpIp_ConsoleApp
                 //
                 //_______________________________________________
                 //
-                int a = t.ThreadState.GetHashCode();
+                int a = updateDatainSQL_Thread.ThreadState.GetHashCode();
                     //ThreadState.U
                     if (a == 12 || a == 8)
                     {
-                        t.IsBackground = true;
-                        t.Start();
+                        updateDatainSQL_Thread.IsBackground = true;
+                        updateDatainSQL_Thread.Start();
                     }
-                    //int b = ElokonTask.ThreadState.GetHashCode();
-                    ////ThreadState.U
-                    //if (b == 12 || b == 8)
-                    //{
-                    //    ElokonTask.IsBackground = true;
-                    //    ElokonTask.Start();
-                    //}
+                    int b = updateAgvAlarms_56_Thread.ThreadState.GetHashCode();
+                    //ThreadState.U
+                    if (b == 12 || b == 8)
+                    {
+                        updateAgvAlarms_56_Thread.IsBackground = true;
+                        updateAgvAlarms_56_Thread.Start();
+                    }
                 }
                 //
                 if (client.Connected == false)
@@ -665,6 +681,15 @@ namespace AGV_TcpIp_ConsoleApp
         }
 
         //
+        static void UpdateVarialeToSendFrame_56() 
+        {
+            while (true)
+            {
+                Thread.Sleep(1000);
+                AgvAlarmsFrameSend_State = true;
+            }
+        }
+            
         private static readonly object _lock349 = new object();
         private static readonly object _lock310 = new object();
         //
@@ -735,10 +760,6 @@ namespace AGV_TcpIp_ConsoleApp
                 }
             }
         }
-        // TEMP EMPTY TO TEST ONLY
-        static void TEMP_Empty()
-        {
 
-        }
     }
 }

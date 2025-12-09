@@ -442,13 +442,14 @@ namespace AGV_TcpIp_ConsoleApp
                             networkStream.Write(sendFrame, 0, 19);
                             //
 #if !DEBUG
-                    Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\logs_TEMP"));
+                            Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\logs_TEMP"));
 #else
-                    Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\logs"));
+                            Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\logs"));
 #endif
                             Console.WriteLine("Ramka ID:56 wysłana ...");
                         }
                         AgvAlarmsFrameSend_State = false;
+                        //
                         #endregion
                     }
                     catch (Exception ex)

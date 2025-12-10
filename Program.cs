@@ -168,7 +168,7 @@ namespace AGV_TcpIp_ConsoleApp
                 while (client.Connected)
                 {
 #if !DEBUG
-            Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\logs_TEMP"));
+                    Console.SetOut(new MyLoger("W:\\BackgroundTasks\\AGV_TCP_IP_v2\\logs_TEMP"));
 #else
                     Console.SetOut(new MyLoger("D:\\AGV_TCP_IP_v2\\logs"));
 #endif

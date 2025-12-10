@@ -22,7 +22,7 @@ namespace AGV_TcpIp_ConsoleApp
             public override void WriteLine(string value)
             {
                 Directory.CreateDirectory(LogPath);
-                File.AppendAllText($"{LogPath}\\{DateTime.Now.ToString("dddd_dd_MMMM_yyyy")}_log2.txt", $"{DateTime.Now.ToString("HH:mm:ss")} ; {value} {Environment.NewLine}");
+                File.AppendAllText($"{LogPath}\\{DateTime.Now.ToString("dddd_dd_MMMM_yyyy")}_log2.txt", $"{DateTime.Now.ToString("HH:mm:ss:fff")} ; {value} {Environment.NewLine}");
             
             }
             public override Encoding Encoding
